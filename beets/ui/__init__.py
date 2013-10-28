@@ -774,9 +774,9 @@ def _raw_main(args):
             get_path_formats(),
             get_replacements(),
         )
-    except sqlite3.OperationalError:
-        raise UserError(u"database file {0} could not be opened".format(
-            util.displayable_path(dbpath)
+    except sqlite3.OperationalError, e:
+        raise UserError(u"database file {0} could not be opened: {1}".format(
+            util.displayable_path(dbpath), e
         ))
     plugins.send("library_opened", lib=lib)
 
