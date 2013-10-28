@@ -348,6 +348,10 @@ class LibModel(FlexModel):
     """The flex field SQLite table name.
     """
 
+    _relation_table = None
+    """The relation field SQLite table name.
+    """
+
     _bytes_keys = ('path', 'artpath')
     """Keys whose values should be stored as raw bytes blobs rather than
     strings.
@@ -438,6 +442,7 @@ class Item(LibModel):
     _fields = ITEM_KEYS
     _table = 'items'
     _flex_table = 'item_attributes'
+    _relation_table = 'item_relations'
     _search_fields = ITEM_DEFAULT_FIELDS
 
     @classmethod
@@ -775,6 +780,7 @@ class Album(LibModel):
     _fields = ALBUM_KEYS
     _table = 'albums'
     _flex_table = 'album_attributes'
+    _relation_table = 'album_relations'
     _search_fields = ALBUM_DEFAULT_FIELDS
 
     def __setitem__(self, key, value):
@@ -1604,6 +1610,8 @@ class Library(object):
         self._make_table(Album._table, album_fields)
         self._make_attribute_table(Item._flex_table)
         self._make_attribute_table(Album._flex_table)
+        self._make_relation_table(Item._relation_table)
+        self._make_relation_table(Album._relation_table)
 
     def _make_table(self, table, fields):
         """Set up the schema of the library file. fields is a list of
@@ -1671,6 +1679,27 @@ class Library(object):
                 CREATE INDEX IF NOT EXISTS {0}_by_entity
                     ON {0} (entity_id);
                 """.format(flex_table))
+
+    def _make_relation_table(self, relation_table):
+        """Create a table and associated index for relation attributes
+        for the given entities (if they don't exist).
+        """
+        with self.transaction() as tx:
+            tx.script("""
+                CREATE TABLE IF NOT EXISTS {0} (
+                    id INTEGER PRIMARY KEY,
+                    from_entity_id INTEGER,
+                    to_entity_id INTEGER,
+                    key TEXT,
+                    value TEXT,
+                    UNIQUE(from_entity_id, key, to_entity_id)
+                        ON CONFLICT REPLACE);
+                CREATE INDEX IF NOT EXISTS {0}_by_from_entity
+                    ON {0} (from_entity_id);
+                CREATE INDEX IF NOT EXISTS {0}_by_to_entity
+                    ON {0} (to_entity_id);
+                """.format(relation_table))
+
 
     def _connection(self):
         """Get a SQLite connection object to the underlying database.
