@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2013, Adrian Sampson.
+# Copyright 2016, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,6 +14,8 @@
 # included in all copies or substantial portions of the Software.
 
 """A Web interface to beets."""
+from __future__ import division, absolute_import, print_function
+
 from beets.plugins import BeetsPlugin
 from beets import ui
 from beets import util
@@ -34,7 +37,10 @@ def _rep(obj, expand=False):
     out = dict(obj)
 
     if isinstance(obj, beets.library.Item):
-        del out['path']
+        if app.config.get('INCLUDE_PATHS', False):
+            out['path'] = util.displayable_path(out['path'])
+        else:
+            del out['path']
 
         # Get the size (in bytes) of the backing file. This is useful
         # for the Tomahawk resolver API.
@@ -52,11 +58,13 @@ def _rep(obj, expand=False):
         return out
 
 
-def json_generator(items, root):
+def json_generator(items, root, expand=False):
     """Generator that dumps list of beets Items or Albums as JSON
 
     :param root:  root key for JSON
     :param items: list of :class:`Item` or :class:`Album` to dump
+    :param expand: If true every :class:`Album` contains its items in the json
+                   representation
     :returns:     generator that yields strings
     """
     yield '{"%s":[' % root
@@ -66,8 +74,14 @@ def json_generator(items, root):
             first = False
         else:
             yield ','
-        yield json.dumps(_rep(item))
+        yield json.dumps(_rep(item, expand=expand))
     yield ']}'
+
+
+def is_expand():
+    """Returns whether the current request is for an expanded response."""
+
+    return flask.request.args.get('expand') is not None
 
 
 def resource(name):
@@ -79,7 +93,7 @@ def resource(name):
             entities = [entity for entity in entities if entity]
 
             if len(entities) == 1:
-                return flask.jsonify(_rep(entities[0]))
+                return flask.jsonify(_rep(entities[0], expand=is_expand()))
             elif entities:
                 return app.response_class(
                     json_generator(entities, root=name),
@@ -87,7 +101,7 @@ def resource(name):
                 )
             else:
                 return flask.abort(404)
-        responder.__name__ = 'get_%s' % name
+        responder.__name__ = 'get_{0}'.format(name)
         return responder
     return make_responder
 
@@ -98,10 +112,13 @@ def resource_query(name):
     def make_responder(query_func):
         def responder(queries):
             return app.response_class(
-                json_generator(query_func(queries), root='results'),
+                json_generator(
+                    query_func(queries),
+                    root='results', expand=is_expand()
+                ),
                 mimetype='application/json'
             )
-        responder.__name__ = 'query_%s' % name
+        responder.__name__ = 'query_{0}'.format(name)
         return responder
     return make_responder
 
@@ -113,12 +130,22 @@ def resource_list(name):
     def make_responder(list_all):
         def responder():
             return app.response_class(
-                json_generator(list_all(), root=name),
+                json_generator(list_all(), root=name, expand=is_expand()),
                 mimetype='application/json'
             )
-        responder.__name__ = 'all_%s' % name
+        responder.__name__ = 'all_{0}'.format(name)
         return responder
     return make_responder
+
+
+def _get_unique_table_field_values(model, field, sort_field):
+    """ retrieve all unique values belonging to a key from a model """
+    if field not in model.all_keys() or sort_field not in model.all_keys():
+        raise KeyError
+    with g.lib.transaction() as tx:
+        rows = tx.query('SELECT DISTINCT "{0}" FROM "{1}" ORDER BY "{2}"'
+                        .format(field, model._table, sort_field))
+    return [row[0] for row in rows]
 
 
 class IdListConverter(BaseConverter):
@@ -149,11 +176,16 @@ class QueryConverter(PathConverter):
         return ','.join(value)
 
 
+class EverythingConverter(PathConverter):
+    regex = '.*?'
+
+
 # Flask setup.
 
 app = flask.Flask(__name__)
 app.url_map.converters['idlist'] = IdListConverter
 app.url_map.converters['query'] = QueryConverter
+app.url_map.converters['everything'] = EverythingConverter
 
 
 @app.before_request
@@ -179,8 +211,11 @@ def all_items():
 @app.route('/item/<int:item_id>/file')
 def item_file(item_id):
     item = g.lib.get_item(item_id)
-    response = flask.send_file(item.path, as_attachment=True,
-                               attachment_filename=os.path.basename(item.path))
+    response = flask.send_file(
+        util.py3_path(item.path),
+        as_attachment=True,
+        attachment_filename=os.path.basename(util.py3_path(item.path)),
+    )
     response.headers['Content-Length'] = os.path.getsize(item.path)
     return response
 
@@ -189,6 +224,27 @@ def item_file(item_id):
 @resource_query('items')
 def item_query(queries):
     return g.lib.items(queries)
+
+
+@app.route('/item/path/<everything:path>')
+def item_at_path(path):
+    query = beets.library.PathQuery('path', path.encode('utf-8'))
+    item = g.lib.items(query).get()
+    if item:
+        return flask.jsonify(_rep(item))
+    else:
+        return flask.abort(404)
+
+
+@app.route('/item/values/<string:key>')
+def item_unique_field_values(key):
+    sort_key = flask.request.args.get('sort_key', key)
+    try:
+        values = _get_unique_table_field_values(beets.library.Item, key,
+                                                sort_key)
+    except KeyError:
+        return flask.abort(404)
+    return flask.jsonify(values=values)
 
 
 # Albums.
@@ -215,7 +271,21 @@ def album_query(queries):
 @app.route('/album/<int:album_id>/art')
 def album_art(album_id):
     album = g.lib.get_album(album_id)
-    return flask.send_file(album.artpath)
+    if album.artpath:
+        return flask.send_file(album.artpath)
+    else:
+        return flask.abort(404)
+
+
+@app.route('/album/values/<string:key>')
+def album_unique_field_values(key):
+    sort_key = flask.request.args.get('sort_key', key)
+    try:
+        values = _get_unique_table_field_values(beets.library.Album, key,
+                                                sort_key)
+    except KeyError:
+        return flask.abort(404)
+    return flask.jsonify(values=values)
 
 
 # Artists.
@@ -254,14 +324,16 @@ class WebPlugin(BeetsPlugin):
     def __init__(self):
         super(WebPlugin, self).__init__()
         self.config.add({
-            'host': u'',
+            'host': u'127.0.0.1',
             'port': 8337,
+            'cors': '',
+            'include_paths': False,
         })
 
     def commands(self):
-        cmd = ui.Subcommand('web', help='start a Web interface')
-        cmd.parser.add_option('-d', '--debug', action='store_true',
-                              default=False, help='debug mode')
+        cmd = ui.Subcommand('web', help=u'start a Web interface')
+        cmd.parser.add_option(u'-d', u'--debug', action='store_true',
+                              default=False, help=u'debug mode')
 
         def func(lib, opts, args):
             args = ui.decargs(args)
@@ -271,7 +343,23 @@ class WebPlugin(BeetsPlugin):
                 self.config['port'] = int(args.pop(0))
 
             app.config['lib'] = lib
-            app.run(host=self.config['host'].get(unicode),
+            # Normalizes json output
+            app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+            app.config['INCLUDE_PATHS'] = self.config['include_paths']
+
+            # Enable CORS if required.
+            if self.config['cors']:
+                self._log.info(u'Enabling CORS with origin: {0}',
+                               self.config['cors'])
+                from flask.ext.cors import CORS
+                app.config['CORS_ALLOW_HEADERS'] = "Content-Type"
+                app.config['CORS_RESOURCES'] = {
+                    r"/*": {"origins": self.config['cors'].get(str)}
+                }
+                CORS(app)
+            # Start the web application.
+            app.run(host=self.config['host'].as_str(),
                     port=self.config['port'].get(int),
                     debug=opts.debug, threaded=True)
         cmd.func = func

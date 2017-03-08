@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2014, Adrian Sampson.
+# Copyright 2016, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -14,7 +15,8 @@
 
 """Some simple performance benchmarks for beets.
 """
-from __future__ import print_function
+
+from __future__ import division, absolute_import, print_function
 
 from beets.plugins import BeetsPlugin
 from beets import ui
@@ -73,7 +75,7 @@ def match_benchmark(lib, prof, query=None, album_id=None):
 
     # Run the match.
     def _run_match():
-        match.tag_album(items, search_id=album_id)
+        match.tag_album(items, search_ids=[album_id])
     if prof:
         cProfile.runctx('_run_match()', {}, {'_run_match': _run_match},
                         'match.prof')

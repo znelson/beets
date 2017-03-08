@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2013, Adrian Sampson.
+# Copyright 2016, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,15 +14,20 @@
 # included in all copies or substantial portions of the Software.
 
 """Tests the TerminalImportSession. The tests are the same as in the
+
 test_importer module. But here the test importer inherits from
 ``TerminalImportSession``. So we test this class, too.
 """
 
-from _common import unittest, DummyIO
+from __future__ import division, absolute_import, print_function
+import unittest
+
+from test._common import DummyIO
 from test import test_importer
 from beets.ui.commands import TerminalImportSession
 from beets import importer
 from beets import config
+import six
 
 
 class TestTerminalImportSession(TerminalImportSession):
@@ -54,21 +60,21 @@ class TestTerminalImportSession(TerminalImportSession):
             choice = self.default_choice
 
         if choice == importer.action.APPLY:
-            self.io.addinput('A')
+            self.io.addinput(u'A')
         elif choice == importer.action.ASIS:
-            self.io.addinput('U')
+            self.io.addinput(u'U')
         elif choice == importer.action.ALBUMS:
-            self.io.addinput('G')
+            self.io.addinput(u'G')
         elif choice == importer.action.TRACKS:
-            self.io.addinput('T')
+            self.io.addinput(u'T')
         elif choice == importer.action.SKIP:
-            self.io.addinput('S')
+            self.io.addinput(u'S')
         elif isinstance(choice, int):
-            self.io.addinput('M')
-            self.io.addinput(str(choice))
+            self.io.addinput(u'M')
+            self.io.addinput(six.text_type(choice))
             self._add_choice_input()
         else:
-            raise Exception('Unknown choice %s' % choice)
+            raise Exception(u'Unknown choice %s' % choice)
 
 
 class TerminalImportSessionSetup(object):
@@ -91,7 +97,7 @@ class TerminalImportSessionSetup(object):
             self.io = DummyIO()
         self.io.install()
         self.importer = TestTerminalImportSession(
-            self.lib, logfile=None, query=None, io=self.io,
+            self.lib, loghandler=None, query=None, io=self.io,
             paths=[import_dir or self.import_dir],
         )
 

@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2014, Adrian Sampson.
+# Copyright 2016, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -14,12 +15,18 @@
 
 """Tests for the DBCore database abstraction.
 """
-import os
-import sqlite3
+from __future__ import division, absolute_import, print_function
 
-from _common import unittest
+import os
+import shutil
+import sqlite3
+import unittest
+from six import assertRaisesRegex
+
+from test import _common
 from beets import dbcore
 from tempfile import mkstemp
+import six
 
 
 # Fixture: concrete database and model classes. For migration tests, we
@@ -112,15 +119,28 @@ class TestDatabaseTwoModels(dbcore.Database):
     pass
 
 
+class TestModelWithGetters(dbcore.Model):
+
+    @classmethod
+    def _getters(cls):
+        return {'aComputedField': (lambda s: 'thing')}
+
+    def _template_funcs(self):
+        return {}
+
+
+@_common.slow_test()
 class MigrationTest(unittest.TestCase):
     """Tests the ability to change the database schema between
     versions.
     """
-    def setUp(self):
-        handle, self.libfile = mkstemp('db')
+
+    @classmethod
+    def setUpClass(cls):
+        handle, cls.orig_libfile = mkstemp('orig_db')
         os.close(handle)
         # Set up a database with the two-field schema.
-        old_lib = TestDatabase2(self.libfile)
+        old_lib = TestDatabase2(cls.orig_libfile)
 
         # Add an item to the old library.
         old_lib._connection().execute(
@@ -128,6 +148,15 @@ class MigrationTest(unittest.TestCase):
         )
         old_lib._connection().commit()
         del old_lib
+
+    @classmethod
+    def tearDownClass(cls):
+        os.remove(cls.orig_libfile)
+
+    def setUp(self):
+        handle, self.libfile = mkstemp('db')
+        os.close(handle)
+        shutil.copyfile(self.orig_libfile, self.libfile)
 
     def tearDown(self):
         os.remove(self.libfile)
@@ -270,6 +299,40 @@ class ModelTest(unittest.TestCase):
         model2.load()
         self.assertNotIn('flex_field', model2)
 
+    def test_check_db_fails(self):
+        with assertRaisesRegex(self, ValueError, 'no database'):
+            dbcore.Model()._check_db()
+        with assertRaisesRegex(self, ValueError, 'no id'):
+            TestModel1(self.db)._check_db()
+
+        dbcore.Model(self.db)._check_db(need_id=False)
+
+    def test_missing_field(self):
+        with self.assertRaises(AttributeError):
+            TestModel1(self.db).nonExistingKey
+
+    def test_computed_field(self):
+        model = TestModelWithGetters()
+        self.assertEqual(model.aComputedField, 'thing')
+        with assertRaisesRegex(self, KeyError, u'computed field .+ deleted'):
+            del model.aComputedField
+
+    def test_items(self):
+        model = TestModel1(self.db)
+        model.id = 5
+        self.assertEqual({('id', 5), ('field_one', None)},
+                         set(model.items()))
+
+    def test_delete_internal_field(self):
+        model = dbcore.Model()
+        del model._db
+        with self.assertRaises(AttributeError):
+            model._db
+
+    def test_parse_nonstring(self):
+        with assertRaisesRegex(self, TypeError, u"must be a string"):
+            dbcore.Model._parse(None, 42)
+
 
 class FormatTest(unittest.TestCase):
     def test_format_fixed_field(self):
@@ -286,9 +349,9 @@ class FormatTest(unittest.TestCase):
 
     def test_format_flex_field_bytes(self):
         model = TestModel1()
-        model.other_field = u'caf\xe9'.encode('utf8')
+        model.other_field = u'caf\xe9'.encode('utf-8')
         value = model.formatted().get('other_field')
-        self.assertTrue(isinstance(value, unicode))
+        self.assertTrue(isinstance(value, six.text_type))
         self.assertEqual(value, u'caf\xe9')
 
     def test_format_unset_field(self):
@@ -348,7 +411,7 @@ class QueryParseTest(unittest.TestCase):
             part,
             {'year': dbcore.query.NumericQuery},
             {':': dbcore.query.RegexpQuery},
-        )
+        )[:-1]  # remove the negate flag
 
     def test_one_basic_term(self):
         q = 'test'
@@ -446,6 +509,7 @@ class SortFromStringsTest(unittest.TestCase):
     def test_zero_parts(self):
         s = self.sfs([])
         self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(s, dbcore.query.NullSort())
 
     def test_one_parts(self):
         s = self.sfs(['field+'])
@@ -458,17 +522,67 @@ class SortFromStringsTest(unittest.TestCase):
 
     def test_fixed_field_sort(self):
         s = self.sfs(['field_one+'])
-        self.assertIsInstance(s, dbcore.query.MultipleSort)
-        self.assertIsInstance(s.sorts[0], dbcore.query.FixedFieldSort)
+        self.assertIsInstance(s, dbcore.query.FixedFieldSort)
+        self.assertEqual(s, dbcore.query.FixedFieldSort('field_one'))
 
     def test_flex_field_sort(self):
         s = self.sfs(['flex_field+'])
-        self.assertIsInstance(s, dbcore.query.MultipleSort)
-        self.assertIsInstance(s.sorts[0], dbcore.query.SlowFieldSort)
+        self.assertIsInstance(s, dbcore.query.SlowFieldSort)
+        self.assertEqual(s, dbcore.query.SlowFieldSort('flex_field'))
 
     def test_special_sort(self):
         s = self.sfs(['some_sort+'])
-        self.assertIsInstance(s.sorts[0], TestSort)
+        self.assertIsInstance(s, TestSort)
+
+
+class ParseSortedQueryTest(unittest.TestCase):
+    def psq(self, parts):
+        return dbcore.parse_sorted_query(
+            TestModel1,
+            parts.split(),
+        )
+
+    def test_and_query(self):
+        q, s = self.psq('foo bar')
+        self.assertIsInstance(q, dbcore.query.AndQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 2)
+
+    def test_or_query(self):
+        q, s = self.psq('foo , bar')
+        self.assertIsInstance(q, dbcore.query.OrQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 2)
+
+    def test_no_space_before_comma_or_query(self):
+        q, s = self.psq('foo, bar')
+        self.assertIsInstance(q, dbcore.query.OrQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 2)
+
+    def test_no_spaces_or_query(self):
+        q, s = self.psq('foo,bar')
+        self.assertIsInstance(q, dbcore.query.AndQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 1)
+
+    def test_trailing_comma_or_query(self):
+        q, s = self.psq('foo , bar ,')
+        self.assertIsInstance(q, dbcore.query.OrQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 3)
+
+    def test_leading_comma_or_query(self):
+        q, s = self.psq(', foo , bar')
+        self.assertIsInstance(q, dbcore.query.OrQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 3)
+
+    def test_only_direction(self):
+        q, s = self.psq('-')
+        self.assertIsInstance(q, dbcore.query.AndQuery)
+        self.assertIsInstance(s, dbcore.query.NullSort)
+        self.assertEqual(len(q.subqueries), 1)
 
 
 class ResultsIteratorTest(unittest.TestCase):
@@ -497,7 +611,7 @@ class ResultsIteratorTest(unittest.TestCase):
         results = self.db._fetch(TestModel1)
         it1 = iter(results)
         it2 = iter(results)
-        it1.next()
+        next(it1)
         list(it2)
         self.assertEqual(len(list(it1)), 1)
 
@@ -532,6 +646,15 @@ class ResultsIteratorTest(unittest.TestCase):
     def test_length(self):
         objs = self.db._fetch(TestModel1)
         self.assertEqual(len(objs), 2)
+
+    def test_out_of_range(self):
+        objs = self.db._fetch(TestModel1)
+        with self.assertRaises(IndexError):
+            objs[100]
+
+    def test_no_results(self):
+        self.assertIsNone(self.db._fetch(
+            TestModel1, dbcore.query.FalseQuery()).get())
 
 
 def suite():

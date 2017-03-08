@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2014, Fabrice Laporte.
+# Copyright 2016, Fabrice Laporte.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -15,12 +15,13 @@
 
 """Tests for the 'bucket' plugin."""
 
-from nose.tools import raises
-from _common import unittest
+from __future__ import division, absolute_import, print_function
+
+import unittest
 from beetsplug import bucket
 from beets import config, ui
 
-from helper import TestHelper
+from test.helper import TestHelper
 
 
 class BucketPluginTest(unittest.TestCase, TestHelper):
@@ -51,7 +52,7 @@ class BucketPluginTest(unittest.TestCase, TestHelper):
         year."""
         self._setup_config(bucket_year=['1950', '1970'])
         self.assertEqual(self.plugin._tmpl_bucket('2014'), '1970')
-        self.assertEqual(self.plugin._tmpl_bucket('2015'), '2015')
+        self.assertEqual(self.plugin._tmpl_bucket('2025'), '2025')
 
     def test_year_two_years(self):
         """Buckets can be named with the 'from-to' syntax."""
@@ -129,26 +130,35 @@ class BucketPluginTest(unittest.TestCase, TestHelper):
         self.assertEqual(self.plugin._tmpl_bucket('…and Oceans'), 'A - D')
         self.assertEqual(self.plugin._tmpl_bucket('Eagles'), 'E - L')
 
-    @raises(ui.UserError)
     def test_bad_alpha_range_def(self):
-        """If bad alpha range definition, a UserError is raised"""
-        self._setup_config(bucket_alpha=['$%'])
-        self.assertEqual(self.plugin._tmpl_bucket('errol'), 'E')
+        """If bad alpha range definition, a UserError is raised."""
+        with self.assertRaises(ui.UserError):
+            self._setup_config(bucket_alpha=['$%'])
 
-    @raises(ui.UserError)
     def test_bad_year_range_def_no4digits(self):
         """If bad year range definition, a UserError is raised.
-        Range origin must be expressed on 4 digits."""
-        self._setup_config(bucket_year=['62-64'])
-        # from year must be expressed on 4 digits
-        self.assertEqual(self.plugin._tmpl_bucket('1963'), '62-64')
+        Range origin must be expressed on 4 digits.
+        """
+        with self.assertRaises(ui.UserError):
+            self._setup_config(bucket_year=['62-64'])
 
-    @raises(ui.UserError)
     def test_bad_year_range_def_nodigits(self):
         """If bad year range definition, a UserError is raised.
-        At least the range origin must be declared."""
-        self._setup_config(bucket_year=['nodigits'])
-        self.assertEqual(self.plugin._tmpl_bucket('1963'), '62-64')
+        At least the range origin must be declared.
+        """
+        with self.assertRaises(ui.UserError):
+            self._setup_config(bucket_year=['nodigits'])
+
+    def check_span_from_str(self, sstr, dfrom, dto):
+        d = bucket.span_from_str(sstr)
+        self.assertEqual(dfrom, d['from'])
+        self.assertEqual(dto, d['to'])
+
+    def test_span_from_str(self):
+        self.check_span_from_str("1980 2000", 1980, 2000)
+        self.check_span_from_str("1980 00", 1980, 2000)
+        self.check_span_from_str("1930 00", 1930, 2000)
+        self.check_span_from_str("1930 50", 1930, 1950)
 
 
 def suite():

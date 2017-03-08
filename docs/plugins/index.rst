@@ -13,56 +13,85 @@ Using Plugins
 -------------
 
 To use one of the plugins included with beets (see the rest of this page for a
-list), just use the `plugins` option in your :doc:`config.yaml </reference/config>`: file, like so::
+list), just use the `plugins` option in your :doc:`config.yaml </reference/config>` file, like so::
 
-    plugins: inline discogs web
+    plugins: inline convert web
 
 The value for `plugins` can be a space-separated list of plugin names or a
 YAML list like ``[foo, bar]``. You can see which plugins are currently enabled
 by typing ``beet version``.
 
+Each plugin has its own set of options that can be defined in a section bearing its name::
+
+    plugins: inline convert web
+
+    convert:
+        auto: true
+
+Some plugins have special dependencies that you'll need to install. The
+documentation page for each plugin will list them in the setup instructions.
+For some, you can use `pip`'s "extras" feature to install the dependencies,
+like this::
+
+    pip install beets[fetchart,lyrics,lastgenre]
+
 .. toctree::
    :hidden:
 
-   chroma
-   lyrics
-   echonest_tempo
-   echonest
-   bpd
-   mpdupdate
-   mpdstats
-   fetchart
-   embedart
-   web
-   lastgenre
-   replaygain
-   inline
-   scrub
-   rewrite
-   random
-   mbcollection
-   importfeeds
-   the
-   fuzzy
-   zero
-   ihate
-   convert
-   info
-   play
-   smartplaylist
-   mbsync
-   missing
-   duplicates
-   discogs
+   absubmit
+   acousticbrainz
+   badfiles
    beatport
+   bpd
+   bpm
+   bucket
+   chroma
+   convert
+   discogs
+   duplicates
+   edit
+   embedart
+   embyupdate
+   export
+   fetchart
    fromfilename
    ftintitle
-   keyfinder
-   bucket
+   fuzzy
+   freedesktop
+   hook
+   ihate
    importadded
-   bpm
+   importfeeds
+   info
+   inline
+   ipfs
+   keyfinder
+   kodiupdate
+   lastgenre
+   lastimport
+   lyrics
+   mbcollection
+   mbsubmit
+   mbsync
+   metasync
+   missing
+   mpdstats
+   mpdupdate
+   permissions
+   play
+   plexupdate
+   random
+   filefilter
+   replaygain
+   rewrite
+   scrub
+   smartplaylist
    spotify
+   the
+   thumbnails
    types
+   web
+   zero
 
 Autotagger Extensions
 ---------------------
@@ -73,72 +102,91 @@ Autotagger Extensions
 * :doc:`fromfilename`: Guess metadata for untagged tracks from their
   filenames.
 
-.. _Beatport: http://www.beatport.com/
 .. _Discogs: http://www.discogs.com/
 
 Metadata
 --------
 
-* :doc:`lyrics`: Automatically fetch song lyrics.
-* :doc:`echonest`: Automatically fetch `acoustic attributes`_ from
-  `the Echo Nest`_ (tempo, energy, danceability, ...).
-* :doc:`lastgenre`: Fetch genres based on Last.fm tags.
-* :doc:`mbsync`: Fetch updated metadata from MusicBrainz
-* :doc:`fetchart`: Fetch album cover art from various sources.
+* :doc:`absubmit`: Analyse audio with the `streaming_extractor_music`_ program and submit the metadata to the AcousticBrainz server
+* :doc:`acousticbrainz`: Fetch various AcousticBrainz metadata
+* :doc:`bpm`: Measure tempo using keystrokes.
+* :doc:`edit`: Edit metadata from a text editor.
 * :doc:`embedart`: Embed album art images into files' metadata.
-* :doc:`replaygain`: Calculate volume normalization for players that support it.
-* :doc:`scrub`: Clean extraneous metadata from music files.
-* :doc:`zero`: Nullify fields by pattern or unconditionally.
+* :doc:`fetchart`: Fetch album cover art from various sources.
 * :doc:`ftintitle`: Move "featured" artists from the artist field to the title
   field.
-* :doc:`mpdstats`: Connect to `MPD`_ and update the beets library with play
-  statistics (last_played, play_count, skip_count, rating).
 * :doc:`keyfinder`: Use the `KeyFinder`_ program to detect the musical
   key from the audio.
 * :doc:`importadded`: Use file modification times for guessing the value for
   the `added` field in the database.
-* :doc:`bpm`: Determine bpm from keystrokes
+* :doc:`lastgenre`: Fetch genres based on Last.fm tags.
+* :doc:`lastimport`: Collect play counts from Last.fm.
+* :doc:`lyrics`: Automatically fetch song lyrics.
+* :doc:`mbsync`: Fetch updated metadata from MusicBrainz
+* :doc:`metasync`: Fetch metadata from local or remote sources
+* :doc:`mpdstats`: Connect to `MPD`_ and update the beets library with play
+  statistics (last_played, play_count, skip_count, rating).
+* :doc:`replaygain`: Calculate volume normalization for players that support it.
+* :doc:`scrub`: Clean extraneous metadata from music files.
+* :doc:`zero`: Nullify fields by pattern or unconditionally.
 
-.. _Acoustic Attributes: http://developer.echonest.com/acoustic-attributes.html
-.. _the Echo Nest: http://www.echonest.com
 .. _KeyFinder: http://www.ibrahimshaath.co.uk/keyfinder/
+.. _streaming_extractor_music: http://acousticbrainz.org/download
 
 Path Formats
 ------------
 
+* :doc:`bucket`: Group your files into bucket directories that cover different
+  field values ranges.
 * :doc:`inline`: Use Python snippets to customize path format strings.
 * :doc:`rewrite`: Substitute values in path formats.
 * :doc:`the`: Move patterns in path formats (i.e., move "a" and "the" to the
   end).
-* :doc:`bucket`: Group your files into bucket directories that cover different
-  field values ranges.
 
 Interoperability
 ----------------
 
+* :doc:`embyupdate`: Automatically notifies `Emby`_ whenever the beets library changes.
+* :doc:`importfeeds`: Keep track of imported files via ``.m3u`` playlist file(s) or symlinks.
+* :doc:`ipfs`: Import libraries from friends and get albums from them via ipfs.
+* :doc:`kodiupdate`: Automatically notifies `Kodi`_ whenever the beets library
+  changes.
 * :doc:`mpdupdate`: Automatically notifies `MPD`_ whenever the beets library
   changes.
-* :doc:`importfeeds`: Keep track of imported files via ``.m3u`` playlist file(s) or symlinks.
-* :doc:`smartplaylist`: Generate smart playlists based on beets queries.
 * :doc:`play`: Play beets queries in your music player.
+* :doc:`plexupdate`: Automatically notifies `Plex`_ whenever the beets library
+  changes.
+* :doc:`smartplaylist`: Generate smart playlists based on beets queries.
+* :doc:`thumbnails`: Get thumbnails with the cover art on your album folders.
+* :doc:`badfiles`: Check audio file integrity.
+
+
+.. _Emby: http://emby.media
+.. _Plex: http://plex.tv
+.. _Kodi: http://kodi.tv
 
 Miscellaneous
 -------------
 
-* :doc:`web`: An experimental Web-based GUI for beets.
-* :doc:`random`: Randomly choose albums and tracks from your library.
-* :doc:`fuzzy`: Search albums and tracks with fuzzy string matching.
-* :doc:`mbcollection`: Maintain your MusicBrainz collection list.
-* :doc:`ihate`: Automatically skip albums and tracks during the import process.
 * :doc:`bpd`: A music player for your beets library that emulates `MPD`_ and is
   compatible with `MPD clients`_.
 * :doc:`convert`: Transcode music and embed album art while exporting to
   a different directory.
-* :doc:`info`: Print music files' tags to the console.
-* :doc:`missing`: List missing tracks.
 * :doc:`duplicates`: List duplicate tracks or albums.
+* :doc:`export`: Export data from queries to a format.
+* :doc:`fuzzy`: Search albums and tracks with fuzzy string matching.
+* :doc:`hook`: Run a command when an event is emitted by beets.
+* :doc:`ihate`: Automatically skip albums and tracks during the import process.
+* :doc:`info`: Print music files' tags to the console.
+* :doc:`mbcollection`: Maintain your MusicBrainz collection list.
+* :doc:`mbsubmit`: Print an album's tracks in a MusicBrainz-friendly format.
+* :doc:`missing`: List missing tracks.
+* :doc:`random`: Randomly choose albums and tracks from your library.
+* :doc:`filefilter`: Automatically skip files during the import process based
+  on regular expressions.
 * :doc:`spotify`: Create Spotify playlists from the Beets library.
 * :doc:`types`: Declare types for flexible attributes.
+* :doc:`web`: An experimental Web-based GUI for beets.
 
 .. _MPD: http://www.musicpd.org/
 .. _MPD clients: http://mpd.wikia.com/wiki/Clients
@@ -182,11 +230,21 @@ Here are a few of the plugins written by the beets community:
 
 * `beets-alternatives`_ manages external files.
 
+* `beets-follow`_ lets you check for new albums from artists you like.
+
+* `beets-setlister`_ generate playlists from the setlists of a given artist.
+
+* `beets-noimport`_ adds and removes directories from the incremental import skip list.
+
+* `whatlastgenre`_ fetches genres from various music sites.
+
+* `beets-usertag`_ lets you use keywords to tag and organize your music.
+
 .. _beets-check: https://github.com/geigerzaehler/beets-check
 .. _copyartifacts: https://github.com/sbarakat/beets-copyartifacts
 .. _dsedivec: https://github.com/dsedivec/beets-plugins
 .. _beets-artistcountry: https://github.com/agrausem/beets-artistcountry
-.. _beetFs: http://code.google.com/p/beetfs/
+.. _beetFs: https://github.com/jbaiter/beetfs
 .. _Beet-MusicBrainz-Collection:
     https://github.com/jeffayle/Beet-MusicBrainz-Collection/
 .. _A cmus plugin:
@@ -194,3 +252,8 @@ Here are a few of the plugins written by the beets community:
 .. _cmus: http://cmus.sourceforge.net/
 .. _beet-amazon: https://github.com/jmwatte/beet-amazon
 .. _beets-alternatives: https://github.com/geigerzaehler/beets-alternatives
+.. _beets-follow: https://github.com/nolsto/beets-follow
+.. _beets-setlister: https://github.com/tomjaspers/beets-setlister
+.. _beets-noimport: https://gitlab.com/tiago.dias/beets-noimport
+.. _whatlastgenre: https://github.com/YetAnotherNerd/whatlastgenre/tree/master/plugin/beets
+.. _beets-usertag: https://github.com/igordertigor/beets-usertag

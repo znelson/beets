@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 # This file is part of beets.
-# Copyright 2013, Adrian Sampson.
+# Copyright 2016, Adrian Sampson.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -14,7 +15,10 @@
 
 """Tests for template engine.
 """
-from _common import unittest
+from __future__ import division, absolute_import, print_function
+
+import unittest
+import six
 from beets.util import functemplate
 
 
@@ -25,7 +29,7 @@ def _normexpr(expr):
     """
     textbuf = []
     for part in expr.parts:
-        if isinstance(part, basestring):
+        if isinstance(part, six.string_types):
             textbuf.append(part)
         else:
             if textbuf:
@@ -207,6 +211,22 @@ class ParseTest(unittest.TestCase):
         self._assert_call(arg_parts[0], u"bar", 1)
         self.assertEqual(list(_normexpr(arg_parts[0].args[0])), [u'baz'])
 
+    def test_sep_before_call_two_args(self):
+        parts = list(_normparse(u'hello, %foo{bar,baz}'))
+        self.assertEqual(len(parts), 2)
+        self.assertEqual(parts[0], u'hello, ')
+        self._assert_call(parts[1], u"foo", 2)
+        self.assertEqual(list(_normexpr(parts[1].args[0])), [u'bar'])
+        self.assertEqual(list(_normexpr(parts[1].args[1])), [u'baz'])
+
+    def test_sep_with_symbols(self):
+        parts = list(_normparse(u'hello,$foo,$bar'))
+        self.assertEqual(len(parts), 4)
+        self.assertEqual(parts[0], u'hello,')
+        self._assert_symbol(parts[1], u"foo")
+        self.assertEqual(parts[2], u',')
+        self._assert_symbol(parts[3], u"bar")
+
 
 class EvalTest(unittest.TestCase):
     def _eval(self, template):
@@ -215,7 +235,7 @@ class EvalTest(unittest.TestCase):
             u'baz': u'BaR',
         }
         functions = {
-            u'lower': unicode.lower,
+            u'lower': six.text_type.lower,
             u'len': len,
         }
         return functemplate.Template(template).substitute(values, functions)
@@ -246,7 +266,7 @@ class EvalTest(unittest.TestCase):
 
     def test_function_call_exception(self):
         res = self._eval(u"%lower{a,b,c,d,e}")
-        self.assertTrue(isinstance(res, basestring))
+        self.assertTrue(isinstance(res, six.string_types))
 
     def test_function_returning_integer(self):
         self.assertEqual(self._eval(u"%len{foo}"), u"3")

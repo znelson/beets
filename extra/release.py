@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 """A utility script for automating the beets release process.
 """
 import click
@@ -33,8 +35,8 @@ VERSION_LOCS = [
         os.path.join(BASE, 'beets', '__init__.py'),
         [
             (
-                r'__version__\s*=\s*[\'"]([0-9\.]+)[\'"]',
-                "__version__ = '{version}'",
+                r'__version__\s*=\s*u[\'"]([0-9\.]+)[\'"]',
+                "__version__ = u'{version}'",
             )
         ]
     ),
@@ -61,6 +63,9 @@ VERSION_LOCS = [
         ]
     ),
 ]
+
+GITHUB_USER = 'beetbox'
+GITHUB_REPO = 'beets'
 
 
 def bump_version(version):
@@ -164,8 +169,8 @@ def rst2md(text):
         ['pandoc', '--from=rst', '--to=markdown', '--no-wrap'],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    stdout, _ = pandoc.communicate(text.encode('utf8'))
-    md = stdout.decode('utf8').strip()
+    stdout, _ = pandoc.communicate(text.encode('utf-8'))
+    md = stdout.decode('utf-8').strip()
 
     # Fix up odd spacing in lists.
     return re.sub(r'^-   ', '- ', md, flags=re.M)
@@ -188,7 +193,19 @@ def changelog_as_markdown():
     # Command links with command names.
     rst = re.sub(r':ref:`(\w+)-cmd`', r'``\1``', rst)
 
-    return rst2md(rst)
+    # Bug numbers.
+    rst = re.sub(r':bug:`(\d+)`', r'#\1', rst)
+
+    # Users.
+    rst = re.sub(r':user:`(\w+)`', r'@\1', rst)
+
+    # Convert with Pandoc.
+    md = rst2md(rst)
+
+    # Restore escaped issue numbers.
+    md = re.sub(r'\\#(\d+)\b', r'#\1', md)
+
+    return md
 
 
 @release.command()
@@ -275,7 +292,7 @@ def prep():
     # FIXME It should be possible to specify this as an argument.
     version_parts = [int(n) for n in cur_version.split('.')]
     version_parts[-1] += 1
-    next_version = '.'.join(map(str, version_parts))
+    next_version = u'.'.join(map(str, version_parts))
     bump_version(next_version)
 
 
@@ -290,11 +307,47 @@ def publish():
 
     # Push to GitHub.
     with chdir(BASE):
+        subprocess.check_call(['git', 'push'])
         subprocess.check_call(['git', 'push', '--tags'])
 
     # Upload to PyPI.
     path = os.path.join(BASE, 'dist', 'beets-{}.tar.gz'.format(version))
     subprocess.check_call(['twine', 'upload', path])
+
+
+@release.command()
+def ghrelease():
+    """Create a GitHub release using the `github-release` command-line
+    tool.
+
+    Reads the changelog to upload from `changelog.md`. Uploads the
+    tarball from the `dist` directory.
+    """
+    version = get_version(1)
+    tag = 'v' + version
+
+    # Load the changelog.
+    with open(os.path.join(BASE, 'changelog.md')) as f:
+        cl_md = f.read()
+
+    # Create the release.
+    subprocess.check_call([
+        'github-release', 'release',
+        '-u', GITHUB_USER, '-r', GITHUB_REPO,
+        '--tag', tag,
+        '--name', '{} {}'.format(GITHUB_REPO, version),
+        '--description', cl_md,
+    ])
+
+    # Attach the release tarball.
+    tarball = os.path.join(BASE, 'dist', 'beets-{}.tar.gz'.format(version))
+    subprocess.check_call([
+        'github-release', 'upload',
+        '-u', GITHUB_USER, '-r', GITHUB_REPO,
+        '--tag', tag,
+        '--name', os.path.basename(tarball),
+        '--file', tarball,
+    ])
 
 
 if __name__ == '__main__':

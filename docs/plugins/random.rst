@@ -5,8 +5,8 @@ The ``random`` plugin provides a command that randomly selects tracks or albums
 from your library. This can be helpful if you need some help deciding what to
 listen to.
 
-First, enable the plugin named ``random`` (see :doc:`/plugins/index`). You'll then
-be able to use the ``beet random`` command::
+First, enable the plugin named ``random`` (see :ref:`using-plugins`). You'll
+then be able to use the ``beet random`` command::
 
     $ beet random
     Aesop Rock - None Shall Pass - The Harbor Is Yours
@@ -23,3 +23,7 @@ of Bob Dylan won't make you listen to Bob Dylan 50% of the time.
 The ``-n NUMBER`` option controls the number of objects that are selected and
 printed (default 1). To select 5 tracks from your library, type ``beet random
 -n5``.
+
+As an alternative, you can use ``-t MINUTES`` to choose a set of music with a
+given play time. To select tracks that total one hour, for example, type
+``beet random -t60``.

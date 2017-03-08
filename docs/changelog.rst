@@ -1,27 +1,1169 @@
 Changelog
 =========
 
-1.3.9 (in development)
+1.4.4 (in development)
 ----------------------
 
-Features:
+New features:
 
+* Added support for DSF files, once a future version of Mutagen is released
+  that supports them. Thanks to :user:`docbobo`. :bug:`459` :bug:`2379`
+* The MusicBrainz backend and  :doc:`/plugins/discogs` now both provide a new
+  attribute called ``track_alt`` that stores more nuanced, possibly
+  non-numeric track index data. For example, some vinyl or tape media will
+  report the side of the record using a letter instead of a number in that
+  field. :bug:`1831` :bug:`2363`
+* The :doc:`/plugins/web` has a new endpoint, ``/item/path/foo``, which will
+  return the item info for the file at the given path, or 404.
+* The :doc:`/plugins/web` also has a new config option, ``include_paths``,
+  which will cause paths to be included in item API responses if set to true.
+* The ``%aunique`` template function for :ref:`aunique` now takes a third
+  argument that specifies which brackets to use around the  disambiguator
+  value.  The argument can be any two characters that represent the left and
+  right brackets. It defaults to `[]` and can also be blank to turn off
+  bracketing. :bug:`2397` :bug:`2399`
+* Added a ``--move`` or ``-m`` option to the importer so that the files can be
+  moved to the library instead of being copied or added "in place".
+  :bug:`2252` :bug:`2429`
+* :doc:`/plugins/badfiles`: Added a ``--verbose`` or ``-v`` option. Results are
+  now displayed only for corrupted files by default and for all the files when
+  the verbose option is set. :bug:`1654` :bug:`2434`
+* A new :ref:`hardlink` config option instructs the importer to create hard
+  links on filesystems that support them. Thanks to :user:`jacobwgillespie`.
+  :bug:`2445`
+* You can now run beets by typing `python -m beets`. :bug:`2453`
+* A new :doc:`/plugins/kodiupdate` lets you keep your Kodi library in sync
+  with beets. Thanks to :user:`Pauligrinder`. :bug:`2411`
+* :doc:`/plugins/smartplaylist`: Different playlist specifications that
+  generate identically-named playlist files no longer conflict; instead, the
+  resulting lists of tracks are concatenated. :bug:`2468`
+
+Fixes:
+
+* :doc:`/plugins/mpdupdate`: Fix Python 3 compatibility. :bug:`2381`
+* :doc:`/plugins/replaygain`: Fix Python 3 compatibility in the ``bs1770gain``
+  backend. :bug:`2382`
+* :doc:`/plugins/bpd`: Report playback times as integer. :bug:`2394`
+* :doc:`/plugins/mpdstats`: Fix Python 3 compatibility. The plugin also now
+  requires version 0.4.2 or later of the ``python-mpd2`` library. :bug:`2405`
+* :doc:`/plugins/mpdstats`: Improve handling of mpd status queries.
+* :doc:`/plugins/badfiles`: Fix Python 3 compatibility.
+* Fix some cases where album-level ReplayGain/SoundCheck metadata would be
+  written to files incorrectly. :bug:`2426`
+* :doc:`/plugins/badfiles`: The command no longer bails out if validator
+  command is not found or exists with an error. :bug:`2430` :bug:`2433`
+* :doc:`/plugins/lyrics`: The Google search backend no longer crashes when the
+  server responds with an error. :bug:`2437`
+* :doc:`/plugins/discogs`: You can now authenticate with Discogs using a
+  personal access token. :bug:`2447`
+* Fix Python 3 compatibility when extracting rar archives in the importer.
+  Thanks to :user:`Lompik`. :bug:`2443` :bug:`2448`
+* :doc:`/plugins/duplicates`: Fix Python 3 compatibility when using the
+  ``copy`` and ``move`` options. :bug:`2444`
+* :doc:`/plugins/mbsubmit`: The tracks are now sorted. Thanks to
+  :user:`awesomer`. :bug:`2457`
+* :doc:`/plugins/thumbnails`: Fix a string-related crash on Python 3.
+  :bug:`2466`
+* :doc:`/plugins/beatport`: More than just 10 songs are now fetched per album.
+  :bug:`2469`
+* On Python 3, the :ref:`terminal_encoding` setting is respected again for
+  output and printing will no longer crash on systems configured with a
+  limited encoding.
+
+
+1.4.3 (January 9, 2017)
+-----------------------
+
+Happy new year! This new version includes a cornucopia of new features from
+contributors, including new tags related to classical music and a new
+:doc:`/plugins/absubmit` for performing acoustic analysis on your music. The
+:doc:`/plugins/random` has a new mode that lets you generate time-limited
+music---for example, you might generate a random playlist that lasts the
+perfect length for your walk to work. We also access as many Web services as
+possible over secure connections now---HTTPS everywhere!
+
+The most visible new features are:
+
+* We now support the composer, lyricist, and arranger tags. The MusicBrainz
+  data source will fetch data for these fields when the next version of
+  `python-musicbrainzngs`_ is released. Thanks to :user:`ibmibmibm`.
+  :bug:`506` :bug:`507` :bug:`1547` :bug:`2333`
+* A new :doc:`/plugins/absubmit` lets you run acoustic analysis software and
+  upload the results for others to use. Thanks to :user:`inytar`. :bug:`2253`
+  :bug:`2342`
+* :doc:`/plugins/play`: The plugin now provides an importer prompt choice to
+  play the music you're about to import. Thanks to :user:`diomekes`.
+  :bug:`2008` :bug:`2360`
+* We now use SSL to access Web services whenever possible. That includes
+  MusicBrainz itself, several album art sources, some lyrics sources, and
+  other servers. Thanks to :user:`tigranl`. :bug:`2307`
+* :doc:`/plugins/random`: A new ``--time`` option lets you generate a random
+  playlist that takes a given amount of time. Thanks to :user:`diomekes`.
+  :bug:`2305` :bug:`2322`
+
+Some smaller new features:
+
+* :doc:`/plugins/zero`: A new ``zero`` command manually triggers the zero
+  plugin. Thanks to :user:`SJoshBrown`. :bug:`2274` :bug:`2329`
+* :doc:`/plugins/acousticbrainz`: The plugin will avoid re-downloading data
+  for files that already have it by default. You can override this behavior
+  using a new ``force`` option. Thanks to :user:`SusannaMaria`. :bug:`2347`
+  :bug:`2349`
+* :doc:`/plugins/bpm`: The ``import.write`` configuration option now
+  decides whether or not to write tracks after updating their BPM. :bug:`1992`
+
+And the fixes:
+
+* :doc:`/plugins/bpd`: Fix a crash on non-ASCII MPD commands. :bug:`2332`
+* :doc:`/plugins/scrub`: Avoid a crash when files cannot be read or written.
+  :bug:`2351`
+* :doc:`/plugins/scrub`: The image type values on scrubbed files are preserved
+  instead of being reset to "other." :bug:`2339`
+* :doc:`/plugins/web`: Fix a crash on Python 3 when serving files from the
+  filesystem. :bug:`2353`
+* :doc:`/plugins/discogs`: Improve the handling of releases that contain
+  subtracks. :bug:`2318`
+* :doc:`/plugins/discogs`: Fix a crash when a release does not contain format
+  information, and increase robustness when other fields are missing.
+  :bug:`2302`
+* :doc:`/plugins/lyrics`: The plugin now reports a beets-specific User-Agent
+  header when requesting lyrics. :bug:`2357`
+* :doc:`/plugins/embyupdate`: The plugin now checks whether an API key or a
+  password is provided in the configuration.
+* :doc:`/plugins/play`: The misspelled configuration option
+  ``warning_treshold`` is no longer supported.
+
+For plugin developers: when providing new importer prompt choices (see
+:ref:`append_prompt_choices`), you can now provide new candidates for the user
+to consider. For example, you might provide an alternative strategy for
+picking between the available alternatives or for looking up a release on
+MusicBrainz.
+
+
+1.4.2 (December 16, 2016)
+-------------------------
+
+This is just a little bug fix release. With 1.4.2, we're also confident enough
+to recommend that anyone who's interested give Python 3 a try: bugs may still
+lurk, but we've deemed things safe enough for broad adoption. If you can,
+please install beets with ``pip3`` instead of ``pip2`` this time and let us
+know how it goes!
+
+Here are the fixes:
+
+* :doc:`/plugins/badfiles`: Fix a crash on non-ASCII filenames. :bug:`2299`
+* The ``%asciify{}`` path formatting function and the :ref:`asciify-paths`
+  setting properly substitute path separators generated by converting some
+  Unicode characters, such as ½ and ¢, into ASCII.
+* :doc:`/plugins/convert`: Fix a logging-related crash when filenames contain
+  curly braces. Thanks to :user:`kierdavis`. :bug:`2323`
+* We've rolled back some changes to the included zsh completion script that
+  were causing problems for some users. :bug:`2266`
+
+Also, we've removed some special handling for logging in the
+:doc:`/plugins/discogs` that we believe was unnecessary. If spurious log
+messages appear in this version, please let us know by filing a bug.
+
+
+1.4.1 (November 25, 2016)
+-------------------------
+
+Version 1.4 has **alpha-level** Python 3 support. Thanks to the heroic efforts
+of :user:`jrobeson`, beets should run both under Python 2.7, as before, and
+now under Python 3.4 and above. The support is still new: it undoubtedly
+contains bugs, so it may replace all your music with Limp Bizkit---but if
+you're brave and you have backups, please try installing on Python 3. Let us
+know how it goes.
+
+If you package beets for distribution, here's what you'll want to know:
+
+* This version of beets now depends on the `six`_ library.
+* We also bumped our minimum required version of `Mutagen`_ to 1.33 (from
+  1.27).
+* Please don't package beets as a Python 3 application *yet*, even though most
+  things work under Python 3.4 and later.
+
+This version also makes a few changes to the command-line interface and
+configuration that you may need to know about:
+
+* :doc:`/plugins/duplicates`: The ``duplicates`` command no longer accepts
+  multiple field arguments in the form ``-k title albumartist album``. Each
+  argument must be prefixed with ``-k``, as in ``-k title -k albumartist -k
+  album``.
+* The old top-level ``colors`` configuration option has been removed (the
+  setting is now under ``ui``).
+* The deprecated ``list_format_album`` and ``list_format_item``
+  configuration options have been removed (see :ref:`format_album` and
+  :ref:`format_item`).
+
+The are a few new features:
+
+* :doc:`/plugins/mpdupdate`, :doc:`/plugins/mpdstats`: When the ``host`` option
+  is not set, these plugins will now look for the ``$MPD_HOST`` environment
+  variable before falling back to ``localhost``. Thanks to :user:`tarruda`.
+  :bug:`2175`
+* :doc:`/plugins/web`: Added an ``expand`` option to show the items of an
+  album. :bug:`2050`
+* :doc:`/plugins/embyupdate`: The plugin can now use an API key instead of a
+  password to authenticate with Emby. :bug:`2045` :bug:`2117`
+* :doc:`/plugins/acousticbrainz`: The plugin now adds a ``bpm`` field.
+* ``beet --version`` now includes the Python version used to run beets.
+* :doc:`/reference/pathformat` can now include unescaped commas (``,``) when
+  they are not part of a function call. :bug:`2166` :bug:`2213`
+* The :ref:`update-cmd` command takes a new ``-F`` flag to specify the fields
+  to update. Thanks to :user:`dangmai`. :bug:`2229` :bug:`2231`
+
+And there are a few bug fixes too:
+
+* :doc:`/plugins/convert`: The plugin no longer asks for confirmation if the
+  query did not return anything to convert. :bug:`2260` :bug:`2262`
+* :doc:`/plugins/embedart`: The plugin now uses ``jpg`` as an extension rather
+  than ``jpeg``, to ensure consistency with the :doc:`plugins/fetchart`.
+  Thanks to :user:`tweitzel`. :bug:`2254` :bug:`2255`
+* :doc:`/plugins/embedart`: The plugin now works for all jpeg files, including
+  those that are only recognizable by their magic bytes.
+  :bug:`1545` :bug:`2255`
+* :doc:`/plugins/web`: The JSON output is no longer pretty-printed (for a
+  space savings). :bug:`2050`
+* :doc:`/plugins/permissions`: Fix a regression in the previous release where
+  the plugin would always fail to set permissions (and log a warning).
+  :bug:`2089`
+* :doc:`/plugins/beatport`: Use track numbers from Beatport (instead of
+  determining them from the order of tracks) and set the `medium_index`
+  value.
+* With :ref:`per_disc_numbering` enabled, some metadata sources (notably, the
+  :doc:`/plugins/beatport`) would not set the track number at all. This is
+  fixed. :bug:`2085`
+* :doc:`/plugins/play`: Fix ``$args`` getting passed verbatim to the play
+  command if it was set in the configuration but ``-A`` or ``--args`` was
+  omitted.
+* With :ref:`ignore_hidden` enabled, non-UTF-8 filenames would cause a crash.
+  This is fixed. :bug:`2168`
+* :doc:`/plugins/embyupdate`: Fixes authentication header problem that caused
+  a problem that it was not possible to get tokens from the Emby API.
+* :doc:`/plugins/lyrics`: Some titles use a colon to separate the main title
+  from a subtitle. To find more matches, the plugin now also searches for
+  lyrics using the part part preceding the colon character. :bug:`2206`
+* Fix a crash when a query uses a date field and some items are missing that
+  field. :bug:`1938`
+* :doc:`/plugins/discogs`: Subtracks are now detected and combined into a
+  single track, two-sided mediums are treated as single discs, and tracks
+  have ``media``, ``medium_total`` and ``medium`` set correctly. :bug:`2222`
+  :bug:`2228`.
+* :doc:`/plugins/missing`: ``missing`` is now treated as an integer, allowing
+  the use of (for example) ranges in queries.
+* :doc:`/plugins/smartplaylist`: Playlist names will be sanitized to
+  ensure valid filenames. :bug:`2258`
+* The ID3 APIC tag now uses the Latin-1 encoding when possible instead of a
+  Unicode encoding. This should increase compatibility with other software,
+  especially with iTunes and when using ID3v2.3. Thanks to :user:`lazka`.
+  :bug:`899` :bug:`2264` :bug:`2270`
+
+The last release, 1.3.19, also erroneously reported its version as "1.3.18"
+when you typed ``beet version``. This has been corrected.
+
+.. _six: https://pythonhosted.org/six/
+
+
+1.3.19 (June 25, 2016)
+----------------------
+
+This is primarily a bug fix release: it cleans up a couple of regressions that
+appeared in the last version. But it also features the triumphant return of the
+:doc:`/plugins/beatport` and a modernized :doc:`/plugins/bpd`.
+
+It's also the first version where beets passes all its tests on Windows! May
+this herald a new age of cross-platform reliability for beets.
+
+New features:
+
+* :doc:`/plugins/beatport`: This metadata source plugin has arisen from the
+  dead! It now works with Beatport's new OAuth-based API. Thanks to
+  :user:`jbaiter`. :bug:`1989` :bug:`2067`
+* :doc:`/plugins/bpd`: The plugin now uses the modern GStreamer 1.0 instead of
+  the old 0.10. Thanks to :user:`philippbeckmann`. :bug:`2057` :bug:`2062`
+* A new ``--force`` option for the :ref:`remove-cmd` command allows removal of
+  items without prompting beforehand. :bug:`2042`
+* A new :ref:`duplicate_action` importer config option controls how duplicate
+  albums or tracks treated in import task. :bug:`185`
+
+Some fixes for Windows:
+
+* Queries are now detected as paths when they contain backslashes (in
+  addition to forward slashes). This only applies on Windows.
+* :doc:`/plugins/embedart`: Image similarity comparison with ImageMagick
+  should now work on Windows.
+* :doc:`/plugins/fetchart`: The plugin should work more reliably with
+  non-ASCII paths.
+
+And other fixes:
+
+* :doc:`/plugins/replaygain`: The ``bs1770gain`` backend now correctly
+  calculates sample peak instead of true peak. This comes with a major
+  speed increase. :bug:`2031`
+* :doc:`/plugins/lyrics`: Avoid a crash and a spurious warning introduced in
+  the last version about a Google API key, which appeared even when you hadn't
+  enabled the Google lyrics source.
+* Fix a hard-coded path to ``bash-completion`` to work better with Homebrew
+  installations. Thanks to :user:`bismark`. :bug:`2038`
+* Fix a crash introduced in the previous version when the standard input was
+  connected to a Unix pipe. :bug:`2041`
+* Fix a crash when specifying non-ASCII format strings on the command line
+  with the ``-f`` option for many commands. :bug:`2063`
+* :doc:`/plugins/fetchart`: Determine the file extension for downloaded images
+  based on the image's magic bytes. The plugin prints a warning if result is
+  not consistent with the server-supplied ``Content-Type`` header. In previous
+  versions, the plugin would use a ``.jpg`` extension for all images.
+  :bug:`2053`
+
+
+1.3.18 (May 31, 2016)
+---------------------
+
+This update adds a new :doc:`/plugins/hook` that lets you integrate beets with
+command-line tools and an :doc:`/plugins/export` that can dump data from the
+beets database as JSON. You can also automatically translate lyrics using a
+machine translation service.
+
+The ``echonest`` plugin has been removed in this version because the API it
+used is `shutting down`_. You might want to try the
+:doc:`/plugins/acousticbrainz` instead.
+
+.. _shutting down: https://developer.spotify.com/news-stories/2016/03/29/api-improvements-update/
+
+Some of the larger new features:
+
+* The new :doc:`/plugins/hook` lets you execute commands in response to beets
+  events.
+* The new :doc:`/plugins/export` can export data from beets' database as
+  JSON. Thanks to :user:`GuilhermeHideki`.
+* :doc:`/plugins/lyrics`: The plugin can now translate the fetched lyrics to
+  your native language using the Bing translation API. Thanks to
+  :user:`Kraymer`.
+* :doc:`/plugins/fetchart`: Album art can now be fetched from `fanart.tv`_.
+
+Smaller new things:
+
+* There are two new functions available in templates: ``%first`` and ``%ifdef``.
+  See :ref:`template-functions`.
+* :doc:`/plugins/convert`: A new `album_art_maxwidth` setting lets you resize
+  album art while copying it.
+* :doc:`/plugins/convert`: The `extension` setting is now optional for
+  conversion formats. By default, the extension is the same as the name of the
+  configured format.
+* :doc:`/plugins/importadded`: A new `preserve_write_mtimes` option
+  lets you preserve mtime of files even when beets updates their metadata.
+* :doc:`/plugins/fetchart`: The `enforce_ratio` option now lets you tolerate
+  images that are *almost* square but differ slightly from an exact 1:1
+  aspect ratio.
+* :doc:`/plugins/fetchart`: The plugin can now optionally save the artwork's
+  source in an attribute in the database.
+* The :ref:`terminal_encoding` configuration option can now also override the
+  *input* encoding. (Previously, it only affected the encoding of the standard
+  *output* stream.)
+* A new :ref:`ignore_hidden` configuration option lets you ignore files that
+  your OS marks as invisible.
+* :doc:`/plugins/web`: A new `values` endpoint lets you get the distinct values
+  of a field. Thanks to :user:`sumpfralle`. :bug:`2010`
+
+.. _fanart.tv: https://fanart.tv/
+
+Fixes:
+
+* Fix a problem with the :ref:`stats-cmd` command in exact mode when filenames
+  on Windows use non-ASCII characters. :bug:`1891`
+* Fix a crash when iTunes Sound Check tags contained invalid data. :bug:`1895`
+* :doc:`/plugins/mbcollection`: The plugin now redacts your MusicBrainz
+  password in the ``beet config`` output. :bug:`1907`
+* :doc:`/plugins/scrub`: Fix an occasional problem where scrubbing on import
+  could undo the :ref:`id3v23` setting. :bug:`1903`
+* :doc:`/plugins/lyrics`: Add compatibility with some changes to the
+  LyricsWiki page markup. :bug:`1912` :bug:`1909`
+* :doc:`/plugins/lyrics`: Fix retrieval from Musixmatch by improving the way
+  we guess the URL for lyrics on that service. :bug:`1880`
+* :doc:`/plugins/edit`: Fail gracefully when the configured text editor
+  command can't be invoked. :bug:`1927`
+* :doc:`/plugins/fetchart`: Fix a crash in the Wikipedia backend on non-ASCII
+  artist and album names. :bug:`1960`
+* :doc:`/plugins/convert`: Change the default `ogg` encoding quality from 2 to
+  3 (to fit the default from the `oggenc(1)` manpage). :bug:`1982`
+* :doc:`/plugins/convert`: The `never_convert_lossy_files` option now
+  considers AIFF a lossless format. :bug:`2005`
+* :doc:`/plugins/web`: A proper 404 error, instead of an internal exception,
+  is returned when missing album art is requested. Thanks to
+  :user:`sumpfralle`. :bug:`2011`
+* Tolerate more malformed floating-point numbers in metadata tags. :bug:`2014`
+* The :ref:`ignore` configuration option now includes the ``lost+found``
+  directory by default.
+* :doc:`/plugins/acousticbrainz`: AcousticBrainz lookups are now done over
+  HTTPS. Thanks to :user:`Freso`. :bug:`2007`
+
+
+1.3.17 (February 7, 2016)
+-------------------------
+
+This release introduces one new plugin to fetch audio information from the
+`AcousticBrainz`_ project and another plugin to make it easier to submit your
+handcrafted metadata back to MusicBrainz.
+The importer also gained two oft-requested features: a way to skip the initial
+search process by specifying an ID ahead of time, and a way to *manually*
+provide metadata in the middle of the import process (via the
+:doc:`/plugins/edit`).
+
+Also, as of this release, the beets project has some new Internet homes! Our
+new domain name is `beets.io`_, and we have a shiny new GitHub organization:
+`beetbox`_.
+
+Here are the big new features:
+
+* A new :doc:`/plugins/acousticbrainz` fetches acoustic-analysis information
+  from the `AcousticBrainz`_ project. Thanks to :user:`opatel99`, and thanks
+  to `Google Code-In`_! :bug:`1784`
+* A new :doc:`/plugins/mbsubmit` lets you print music's current metadata in a
+  format that the MusicBrainz data parser can understand. You can trigger it
+  during an interactive import session. :bug:`1779`
+* A new ``--search-id`` importer option lets you manually specify
+  IDs (i.e., MBIDs or Discogs IDs) for imported music. Doing this skips the
+  initial candidate search, which can be important for huge albums where this
+  initial lookup is slow.
+  Also, the ``enter Id`` prompt choice now accepts several IDs, separated by
+  spaces. :bug:`1808`
+* :doc:`/plugins/edit`: You can now edit metadata *on the fly* during the
+  import process. The plugin provides two new interactive options: one to edit
+  *your music's* metadata, and one to edit the *matched metadata* retrieved
+  from MusicBrainz (or another data source). This feature is still in its
+  early stages, so please send feedback if you find anything missing.
+  :bug:`1846` :bug:`396`
+
+There are even more new features:
+
+* :doc:`/plugins/fetchart`: The Google Images backend has been restored. It
+  now requires an API key from Google. Thanks to :user:`lcharlick`.
+  :bug:`1778`
+* :doc:`/plugins/info`: A new option will print only fields' names and not
+  their values. Thanks to :user:`GuilhermeHideki`. :bug:`1812`
+* The :ref:`fields-cmd` command now displays flexible attributes.
+  Thanks to :user:`GuilhermeHideki`. :bug:`1818`
+* The :ref:`modify-cmd` command lets you interactively select which albums or
+  items you want to change. :bug:`1843`
+* The :ref:`move-cmd` command gained a new ``--timid`` flag to print and
+  confirm which files you want to move. :bug:`1843`
+* The :ref:`move-cmd` command no longer prints filenames for files that
+  don't actually need to be moved. :bug:`1583`
+
+.. _Google Code-In: https://codein.withgoogle.com/
+.. _AcousticBrainz: http://acousticbrainz.org/
+
+Fixes:
+
+* :doc:`/plugins/play`: Fix a regression in the last version where there was
+  no default command. :bug:`1793`
+* :doc:`/plugins/lastimport`: The plugin now works again after being broken by
+  some unannounced changes to the Last.fm API. :bug:`1574`
+* :doc:`/plugins/play`: Fixed a typo in a configuration option. The option is
+  now ``warning_threshold`` instead of ``warning_treshold``, but we kept the
+  old name around for compatibility. Thanks to :user:`JesseWeinstein`.
+  :bug:`1802` :bug:`1803`
+* :doc:`/plugins/edit`: Editing metadata now moves files, when appropriate
+  (like the :ref:`modify-cmd` command). :bug:`1804`
+* The :ref:`stats-cmd` command no longer crashes when files are missing or
+  inaccessible. :bug:`1806`
+* :doc:`/plugins/fetchart`: Possibly fix a Unicode-related crash when using
+  some versions of pyOpenSSL. :bug:`1805`
+* :doc:`/plugins/replaygain`: Fix an intermittent crash with the GStreamer
+  backend. :bug:`1855`
+* :doc:`/plugins/lastimport`: The plugin now works with the beets API key by
+  default. You can still provide a different key the configuration.
+* :doc:`/plugins/replaygain`: Fix a crash using the Python Audio Tools
+  backend. :bug:`1873`
+
+.. _beets.io: http://beets.io/
+.. _Beetbox: https://github.com/beetbox
+
+
+
+1.3.16 (December 28, 2015)
+--------------------------
+
+The big news in this release is a new :doc:`interactive editor plugin
+</plugins/edit>`. It's really nifty: you can now change your music's metadata
+by making changes in a visual text editor, which can sometimes be far more
+efficient than the built-in :ref:`modify-cmd` command. No more carefully
+retyping the same artist name with slight capitalization changes.
+
+This version also adds an oft-requested "not" operator to beets' queries, so
+you can exclude music from any operation. It also brings friendlier formatting
+(and querying!) of song durations.
+
+The big new stuff:
+
+* A new :doc:`/plugins/edit` lets you manually edit your music's metadata
+  using your favorite text editor. :bug:`164` :bug:`1706`
+* Queries can now use "not" logic. Type a ``^`` before part of a query to
+  *exclude* matching music from the results. For example, ``beet list -a
+  beatles ^album:1`` will find all your albums by the Beatles except for their
+  singles compilation, "1." See :ref:`not_query`. :bug:`819` :bug:`1728`
+* A new :doc:`/plugins/embyupdate` can trigger a library refresh on an `Emby`_
+  server when your beets database changes.
+* Track length is now displayed as "M:SS" rather than a raw number of seconds.
+  Queries on track length also accept this format: for example, ``beet list
+  length:5:30..`` will find all your tracks that have a duration over 5
+  minutes and 30 seconds. You can turn off this new behavior using the
+  ``format_raw_length`` configuration option. :bug:`1749`
+
+Smaller changes:
+
+* Three commands, ``modify``, ``update``, and ``mbsync``, would previously
+  move files by default after changing their metadata. Now, these commands
+  will only move files if you have the :ref:`config-import-copy` or
+  :ref:`config-import-move` options enabled in your importer configuration.
+  This way, if you configure the importer not to touch your filenames, other
+  commands will respect that decision by default too. Each command also
+  sprouted a ``--move`` command-line option to override this default (in
+  addition to the ``--nomove`` flag they already had). :bug:`1697`
+* A new configuration option, ``va_name``, controls the album artist name for
+  various-artists albums. The setting defaults to "Various Artists," the
+  MusicBrainz standard. In order to match MusicBrainz, the
+  :doc:`/plugins/discogs` also adopts the same setting.
+* :doc:`/plugins/info`: The ``info`` command now accepts a ``-f/--format``
+  option for customizing how items are displayed, just like the built-in
+  ``list`` command. :bug:`1737`
+
+Some changes for developers:
+
+* Two new :ref:`plugin hooks <plugin_events>`, ``albuminfo_received`` and
+  ``trackinfo_received``, let plugins intercept metadata as soon as it is
+  received, before it is applied to music in the database. :bug:`872`
+* Plugins can now add options to the interactive importer prompts. See
+  :ref:`append_prompt_choices`. :bug:`1758`
+
+Fixes:
+
+* :doc:`/plugins/plexupdate`: Fix a crash when Plex libraries use non-ASCII
+  collection names. :bug:`1649`
+* :doc:`/plugins/discogs`: Maybe fix a crash when using some versions of the
+  ``requests`` library. :bug:`1656`
+* Fix a race in the importer when importing two albums with the same artist
+  and name in quick succession. The importer would fail to detect them as
+  duplicates, claiming that there were "empty albums" in the database even
+  when there were not. :bug:`1652`
+* :doc:`plugins/lastgenre`: Clean up the reggae-related genres somewhat.
+  Thanks to :user:`Freso`. :bug:`1661`
+* The importer now correctly moves album art files when re-importing.
+  :bug:`314`
+* :doc:`/plugins/fetchart`: In auto mode, the plugin now skips albums that
+  already have art attached to them so as not to interfere with re-imports.
+  :bug:`314`
+* :doc:`plugins/fetchart`: The plugin now only resizes album art if necessary,
+  rather than always by default. :bug:`1264`
+* :doc:`plugins/fetchart`: Fix a bug where a database reference to a
+  non-existent album art file would prevent the command from fetching new art.
+  :bug:`1126`
+* :doc:`/plugins/thumbnails`: Fix a crash with Unicode paths. :bug:`1686`
+* :doc:`/plugins/embedart`: The ``remove_art_file`` option now works on import
+  (as well as with the explicit command). :bug:`1662` :bug:`1675`
+* :doc:`/plugins/metasync`: Fix a crash when syncing with recent versions of
+  iTunes. :bug:`1700`
+* :doc:`/plugins/duplicates`: Fix a crash when merging items. :bug:`1699`
+* :doc:`/plugins/smartplaylist`: More gracefully handle malformed queries and
+  missing configuration.
+* Fix a crash with some files with unreadable iTunes SoundCheck metadata.
+  :bug:`1666`
+* :doc:`/plugins/thumbnails`: Fix a nasty segmentation fault crash that arose
+  with some library versions. :bug:`1433`
+* :doc:`/plugins/convert`: Fix a crash with Unicode paths in ``--pretend``
+  mode. :bug:`1735`
+* Fix a crash when sorting by nonexistent fields on queries. :bug:`1734`
+* Probably fix some mysterious errors when dealing with images using
+  ImageMagick on Windows. :bug:`1721`
+* Fix a crash when writing some Unicode comment strings to MP3s that used
+  older encodings. The encoding is now always updated to UTF-8. :bug:`879`
+* :doc:`/plugins/fetchart`: The Google Images backend has been removed. It
+  used an API that has been shut down. :bug:`1760`
+* :doc:`/plugins/lyrics`: Fix a crash in the Google backend when searching for
+  bands with regular-expression characters in their names, like Sunn O))).
+  :bug:`1673`
+* :doc:`/plugins/scrub`: In ``auto`` mode, the plugin now *actually* only
+  scrubs files on import, as the documentation always claimed it did---not
+  every time files were written, as it previously did. :bug:`1657`
+* :doc:`/plugins/scrub`: Also in ``auto`` mode, album art is now correctly
+  restored. :bug:`1657`
+* Possibly allow flexible attributes to be used with the ``%aunique`` template
+  function. :bug:`1775`
+* :doc:`/plugins/lyrics`: The Genius backend is now more robust to
+  communication errors. The backend has also been disabled by default, since
+  the API it depends on is currently down. :bug:`1770`
+
+.. _Emby: http://emby.media
+
+
+1.3.15 (October 17, 2015)
+-------------------------
+
+This release adds a new plugin for checking file quality and a new source for
+lyrics. The larger features are:
+
+* A new :doc:`/plugins/badfiles` helps you scan for corruption in your music
+  collection. Thanks to :user:`fxthomas`. :bug:`1568`
+* :doc:`/plugins/lyrics`: You can now fetch lyrics from Genius.com.
+  Thanks to :user:`sadatay`. :bug:`1626` :bug:`1639`
+* :doc:`/plugins/zero`: The plugin can now use a "whitelist" policy as an
+  alternative to the (default) "blacklist" mode. Thanks to :user:`adkow`.
+  :bug:`1621` :bug:`1641`
+
+And there are smaller new features too:
+
+* Add new color aliases for standard terminal color names (e.g., cyan and
+  magenta). Thanks to :user:`mathstuf`. :bug:`1548`
+* :doc:`/plugins/play`: A new ``--args`` option lets you specify options for
+  the player command. :bug:`1532`
+* :doc:`/plugins/play`: A new ``raw`` configuration option lets the command
+  work with players (such as VLC) that expect music filenames as arguments,
+  rather than in a playlist. Thanks to :user:`nathdwek`. :bug:`1578`
+* :doc:`/plugins/play`: You can now configure the number of tracks that
+  trigger a "lots of music" warning. :bug:`1577`
+* :doc:`/plugins/embedart`: A new ``remove_art_file`` option lets you clean up
+  if you prefer *only* embedded album art. Thanks to :user:`jackwilsdon`.
+  :bug:`1591` :bug:`733`
+* :doc:`/plugins/plexupdate`: A new ``library_name`` option allows you to select
+  which Plex library to update. :bug:`1572` :bug:`1595`
+* A new ``include`` option lets you import external configuration files.
+
+This release has plenty of fixes:
+
+* :doc:`/plugins/lastgenre`: Fix a bug that prevented tag popularity from
+  being considered. Thanks to :user:`svoos`. :bug:`1559`
+* Fixed a bug where plugins wouldn't be notified of the deletion of an item's
+  art, for example with the ``clearart`` command from the
+  :doc:`/plugins/embedart`. Thanks to :user:`nathdwek`. :bug:`1565`
+* :doc:`/plugins/fetchart`: The Google Images source is disabled by default
+  (as it was before beets 1.3.9), as is the Wikipedia source (which was
+  causing lots of unnecessary delays due to DBpedia downtime). To re-enable
+  these sources, add ``wikipedia google`` to your ``sources`` configuration
+  option.
+* The :ref:`list-cmd` command's help output now has a small query and format
+  string example. Thanks to :user:`pkess`. :bug:`1582`
+* :doc:`/plugins/fetchart`: The plugin now fetches PNGs but not GIFs. (It
+  still fetches JPEGs.) This avoids an error when trying to embed images,
+  since not all formats support GIFs. :bug:`1588`
+* Date fields are now written in the correct order (year-month-day), which
+  eliminates an intermittent bug where the latter two fields would not get
+  written to files. Thanks to :user:`jdetrey`. :bug:`1303` :bug:`1589`
+* :doc:`/plugins/replaygain`: Avoid a crash when the PyAudioTools backend
+  encounters an error. :bug:`1592`
+* The case sensitivity of path queries is more useful now: rather than just
+  guessing based on the platform, we now check the case sensitivity of your
+  filesystem. :bug:`1586`
+* Case-insensitive path queries might have returned nothing because of a
+  wrong SQL query.
+* Fix a crash when a query contains a "+" or "-" alone in a component.
+  :bug:`1605`
+* Fixed unit of file size to powers of two (MiB, GiB, etc.) instead of powers
+  of ten (MB, GB, etc.). :bug:`1623`
+
+
+1.3.14 (August 2, 2015)
+-----------------------
+
+This is mainly a bugfix release, but we also have a nifty new plugin for
+`ipfs`_ and a bunch of new configuration options.
+
+The new features:
+
+* A new :doc:`/plugins/ipfs` lets you share music via a new, global,
+  decentralized filesystem. :bug:`1397`
+* :doc:`/plugins/duplicates`: You can now merge duplicate
+  track metadata (when detecting duplicate items), or duplicate album
+  tracks (when detecting duplicate albums).
+* :doc:`/plugins/duplicates`: Duplicate resolution now uses an ordering to
+  prioritize duplicates. By default, it prefers music with more complete
+  metadata, but you can configure it to use any list of attributes.
+* :doc:`/plugins/metasync`: Added a new backend to fetch metadata from iTunes.
+  This plugin is still in an experimental phase. :bug:`1450`
+* The `move` command has a new ``--pretend`` option, making the command show
+  how the items will be moved without actually changing anything.
+* The importer now supports matching of "pregap" or HTOA (hidden track-one
+  audio) tracks when they are listed in MusicBrainz. (This feature depends on a
+  new version of the `python-musicbrainzngs`_ library that is not yet released, but
+  will start working when it is available.) Thanks to :user:`ruippeixotog`.
+  :bug:`1104` :bug:`1493`
+* :doc:`/plugins/plexupdate`: A new ``token`` configuration option lets you
+  specify a key for Plex Home setups. Thanks to :user:`edcarroll`. :bug:`1494`
+
+Fixes:
+
+* :doc:`/plugins/fetchart`: Complain when the `enforce_ratio`
+  or `min_width` options are enabled but no local imaging backend is available
+  to carry them out. :bug:`1460`
+* :doc:`/plugins/importfeeds`: Avoid generating incorrect m3u filename when
+  both of the `m3u` and `m3u_multi` options are enabled. :bug:`1490`
+* :doc:`/plugins/duplicates`: Avoid a crash when misconfigured. :bug:`1457`
+* :doc:`/plugins/mpdstats`: Avoid a crash when the music played is not in the
+  beets library. Thanks to :user:`CodyReichert`. :bug:`1443`
+* Fix a crash with ArtResizer on Windows systems (affecting
+  :doc:`/plugins/embedart`, :doc:`/plugins/fetchart`,
+  and :doc:`/plugins/thumbnails`). :bug:`1448`
+* :doc:`/plugins/permissions`: Fix an error with non-ASCII paths. :bug:`1449`
+* Fix sorting by paths when the :ref:`sort_case_insensitive` option is
+  enabled. :bug:`1451`
+* :doc:`/plugins/embedart`: Avoid an error when trying to embed invalid images
+  into MPEG-4 files.
+* :doc:`/plugins/fetchart`: The Wikipedia source can now better deal artists
+  that use non-standard capitalization (e.g., alt-J, dEUS).
+* :doc:`/plugins/web`: Fix searching for non-ASCII queries. Thanks to
+  :user:`oldtopman`. :bug:`1470`
+* :doc:`/plugins/mpdupdate`: We now recommend the newer ``python-mpd2``
+  library instead of its unmaintained parent. Thanks to :user:`Somasis`.
+  :bug:`1472`
+* The importer interface and log file now output a useful list of files
+  (instead of the word "None") when in album-grouping mode. :bug:`1475`
+  :bug:`825`
+* Fix some logging errors when filenames and other user-provided strings
+  contain curly braces. :bug:`1481`
+* Regular expression queries over paths now work more reliably with non-ASCII
+  characters in filenames. :bug:`1482`
+* Fix a bug where the autotagger's :ref:`ignored` setting was sometimes, well,
+  ignored. :bug:`1487`
+* Fix a bug with Unicode strings when generating image thumbnails. :bug:`1485`
+* :doc:`/plugins/keyfinder`: Fix handling of Unicode paths. :bug:`1502`
+* :doc:`/plugins/fetchart`: When album art is already present, the message is
+  now printed in the ``text_highlight_minor`` color (light gray). Thanks to
+  :user:`Somasis`. :bug:`1512`
+* Some messages in the console UI now use plural nouns correctly. Thanks to
+  :user:`JesseWeinstein`. :bug:`1521`
+* Sorting numerical fields (such as track) now works again. :bug:`1511`
+* :doc:`/plugins/replaygain`: Missing GStreamer plugins now cause a helpful
+  error message instead of a crash. :bug:`1518`
+* Fix an edge case when producing sanitized filenames where the maximum path
+  length conflicted with the :ref:`replace` rules. Thanks to Ben Ockmore.
+  :bug:`496` :bug:`1361`
+* Fix an incompatibility with OS X 10.11 (where ``/usr/sbin`` seems not to be
+  on the user's path by default).
+* Fix an incompatibility with certain JPEG files. Here's a relevant `Python
+  bug`_. Thanks to :user:`nathdwek`. :bug:`1545`
+* Fix the :ref:`group_albums` importer mode so that it works correctly when
+  files are not already in order by album. :bug:`1550`
+* The ``fields`` command no longer separates built-in fields from
+  plugin-provided ones. This distinction was becoming increasingly unreliable.
+* :doc:`/plugins/duplicates`: Fix a Unicode warning when paths contained
+  non-ASCII characters. :bug:`1551`
+* :doc:`/plugins/fetchart`: Work around a urllib3 bug that could cause a
+  crash. :bug:`1555` :bug:`1556`
+* When you edit the configuration file with ``beet config -e`` and the file
+  does not exist, beets creates an empty file before editing it. This fixes an
+  error on OS X, where the ``open`` command does not work with non-existent
+  files. :bug:`1480`
+
+.. _Python bug: http://bugs.python.org/issue16512
+.. _ipfs: http://ipfs.io
+
+
+1.3.13 (April 24, 2015)
+-----------------------
+
+This is a tiny bug-fix release. It copes with a dependency upgrade that broke
+beets. There are just two fixes:
+
+* Fix compatibility with `Jellyfish`_ version 0.5.0.
+* :doc:`/plugins/embedart`: In ``auto`` mode (the import hook), the plugin now
+  respects the ``write`` config option under ``import``. If this is disabled,
+  album art is no longer embedded on import in order to leave files
+  untouched---in effect, ``auto`` is implicitly disabled. :bug:`1427`
+
+
+1.3.12 (April 18, 2015)
+-----------------------
+
+This little update makes queries more powerful, sorts music more
+intelligently, and removes a performance bottleneck. There's an experimental
+new plugin for synchronizing metadata with music players.
+
+Packagers should also note a new dependency in this version: the `Jellyfish`_
+Python library makes our text comparisons (a big part of the auto-tagging
+process) go much faster.
+
+New features:
+
+* Queries can now use **"or" logic**: if you use a comma to separate parts of a
+  query, items and albums will match *either* side of the comma. For example,
+  ``beet ls foo , bar`` will get all the items matching `foo` or matching
+  `bar`. See :ref:`combiningqueries`. :bug:`1423`
+* The autotagger's **matching algorithm is faster**. We now use the
+  `Jellyfish`_ library to compute string similarity, which is better optimized
+  than our hand-rolled edit distance implementation. :bug:`1389`
+* Sorting is now **case insensitive** by default. This means that artists will
+  be sorted lexicographically regardless of case. For example, the artist
+  alt-J will now properly sort before YACHT. (Previously, it would have ended
+  up at the end of the list, after all the capital-letter artists.)
+  You can turn this new behavior off using the :ref:`sort_case_insensitive`
+  configuration option. See :ref:`query-sort`. :bug:`1429`
+* An experimental new :doc:`/plugins/metasync` lets you get metadata from your
+  favorite music players, starting with Amarok. :bug:`1386`
+* :doc:`/plugins/fetchart`: There are new settings to control what constitutes
+  "acceptable" images. The `minwidth` option constrains the minimum image
+  width in pixels and the `enforce_ratio` option requires that images be
+  square. :bug:`1394`
+
+Little fixes and improvements:
+
+* :doc:`/plugins/fetchart`: Remove a hard size limit when fetching from the
+  Cover Art Archive.
+* The output of the :ref:`fields-cmd` command is now sorted. Thanks to
+  :user:`multikatt`. :bug:`1402`
+* :doc:`/plugins/replaygain`: Fix a number of issues with the new
+  ``bs1770gain`` backend on Windows. Also, fix missing debug output in import
+  mode. :bug:`1398`
+* Beets should now be better at guessing the appropriate output encoding on
+  Windows. (Specifically, the console output encoding is guessed separately
+  from the encoding for command-line arguments.) A bug was also fixed where
+  beets would ignore the locale settings and use UTF-8 by default. :bug:`1419`
+* :doc:`/plugins/discogs`: Better error handling when we can't communicate
+  with Discogs on setup. :bug:`1417`
+* :doc:`/plugins/importadded`: Fix a crash when importing singletons in-place.
+  :bug:`1416`
+* :doc:`/plugins/fuzzy`: Fix a regression causing a crash in the last release.
+  :bug:`1422`
+* Fix a crash when the importer cannot open its log file. Thanks to
+  :user:`barsanuphe`. :bug:`1426`
+* Fix an error when trying to write tags for items with flexible fields called
+  `date` and `original_date` (which are not built-in beets fields).
+  :bug:`1404`
+
+.. _Jellyfish: https://github.com/sunlightlabs/jellyfish
+
+
+1.3.11 (April 5, 2015)
+----------------------
+
+In this release, we refactored the logging system to be more flexible and more
+useful. There are more granular levels of verbosity, the output from plugins
+should be more consistent, and several kinds of logging bugs should be
+impossible in the future.
+
+There are also two new plugins: one for filtering the files you import and an
+evolved plugin for using album art as directory thumbnails in file managers.
+There's a new source for album art, and the importer now records the source of
+match data. This is a particularly huge release---there's lots more below.
+
+There's one big change with this release: **Python 2.6 is no longer
+supported**. You'll need Python 2.7. Please trust us when we say this let us
+remove a surprising number of ugly hacks throughout the code.
+
+Major new features and bigger changes:
+
+* There are now **multiple levels of output verbosity**. On the command line,
+  you can make beets somewhat verbose with ``-v`` or very verbose with
+  ``-vv``. For the importer especially, this makes the first verbose mode much
+  more manageable, while still preserving an option for overwhelmingly verbose
+  debug output. :bug:`1244`
+* A new :doc:`/plugins/filefilter` lets you write regular expressions to
+  automatically **avoid importing** certain files. Thanks to :user:`mried`.
+  :bug:`1186`
+* A new :doc:`/plugins/thumbnails` generates cover-art **thumbnails for
+  album folders** for Freedesktop.org-compliant file managers. (This replaces
+  the :doc:`/plugins/freedesktop`, which only worked with the Dolphin file
+  manager.)
+* :doc:`/plugins/replaygain`: There is a new backend that uses the
+  `bs1770gain`_ analysis tool. Thanks to :user:`jmwatte`. :bug:`1343`
+* A new ``filesize`` field on items indicates the number of bytes in the file.
+  :bug:`1291`
+* A new :ref:`searchlimit` configuration option allows you to specify how many
+  search results you wish to see when looking up releases at MusicBrainz
+  during import. :bug:`1245`
+* The importer now records the data source for a match in a new
+  flexible attribute `data_source` on items and albums. :bug:`1311`
+* The colors used in the terminal interface are now configurable via the new
+  config option ``colors``, nested under the option ``ui``. (Also, the `color`
+  config option has been moved from top-level to under ``ui``. Beets will
+  respect the old color setting, but will warn the user with a deprecation
+  message.) :bug:`1238`
+* :doc:`/plugins/fetchart`: There's a new Wikipedia image source that uses
+  DBpedia to find albums. Thanks to Tom Jaspers. :bug:`1194`
+* In the :ref:`config-cmd` command, the output is now redacted by default.
+  Sensitive information like passwords and API keys is not included. The new
+  ``--clear`` option disables redaction. :bug:`1376`
+
+You should probably also know about these core changes to the way beets works:
+
+* As mentioned above, Python 2.6 is no longer supported.
+* The ``tracktotal`` attribute is now a *track-level field* instead of an
+  album-level one. This field stores the total number of tracks on the
+  album, or if the :ref:`per_disc_numbering` config option is set, the total
+  number of tracks on a particular medium (i.e., disc). The field was causing
+  problems with that :ref:`per_disc_numbering` mode: different discs on the
+  same album needed different track totals. The field can now work correctly
+  in either mode.
+* To replace ``tracktotal`` as an album-level field, there is a new
+  ``albumtotal`` computed attribute that provides the total number of tracks
+  on the album. (The :ref:`per_disc_numbering` option has no influence on this
+  field.)
+* The `list_format_album` and `list_format_item` configuration keys
+  now affect (almost) every place where objects are printed and logged.
+  (Previously, they only controlled the :ref:`list-cmd` command and a few
+  other scattered pieces.) :bug:`1269`
+* Relatedly, the ``beet`` program now accept top-level options
+  ``--format-item`` and ``--format-album`` before any subcommand to control
+  how items and albums are displayed. :bug:`1271`
+* `list_format_album` and `list_format_album` have respectively been
+  renamed :ref:`format_album` and :ref:`format_item`. The old names still work
+  but each triggers a warning message. :bug:`1271`
+* :ref:`Path queries <pathquery>` are automatically triggered only if the
+  path targeted by the query exists. Previously, just having a slash somewhere
+  in the query was enough, so ``beet ls AC/DC`` wouldn't work to refer to the
+  artist.
+
+There are also lots of medium-sized features in this update:
+
+* :doc:`/plugins/duplicates`: The command has a new ``--strict`` option
+  that will only report duplicates if all attributes are explicitly set.
+  :bug:`1000`
+* :doc:`/plugins/smartplaylist`: Playlist updating should now be faster: the
+  plugin detects, for each playlist, whether it needs to be regenerated,
+  instead of obliviously regenerating all of them. The ``splupdate`` command
+  can now also take additional parameters that indicate the names of the
+  playlists to regenerate.
+* :doc:`/plugins/play`: The command shows the output of the underlying player
+  command and lets you interact with it. :bug:`1321`
+* The summary shown to compare duplicate albums during import now displays
+  the old and new filesizes. :bug:`1291`
+* :doc:`/plugins/lastgenre`: Add *comedy*, *humor*, and *stand-up* as well as
+  a longer list of classical music genre tags to the built-in whitelist and
+  canonicalization tree. :bug:`1206` :bug:`1239` :bug:`1240`
+* :doc:`/plugins/web`: Add support for *cross-origin resource sharing* for
+  more flexible in-browser clients. Thanks to Andre Miller. :bug:`1236`
+  :bug:`1237`
+* :doc:`plugins/mbsync`: A new ``-f/--format`` option controls the output
+  format when listing unrecognized items. The output is also now more helpful
+  by default. :bug:`1246`
+* :doc:`/plugins/fetchart`: A new option, ``-n``, extracts the cover art of
+  all matched albums into their respective directories. Another new flag,
+  ``-a``, associates the extracted files with the albums in the database.
+  :bug:`1261`
+* :doc:`/plugins/info`: A new option, ``-i``, can display only a specified
+  subset of properties. :bug:`1287`
+* The number of missing/unmatched tracks is shown during import. :bug:`1088`
+* :doc:`/plugins/permissions`: The plugin now also adjusts the permissions of
+  the directories. (Previously, it only affected files.) :bug:`1308` :bug:`1324`
+* :doc:`/plugins/ftintitle`: You can now configure the format that the plugin
+  uses to add the artist to the title. Thanks to :user:`amishb`. :bug:`1377`
+
+And many little fixes and improvements:
+
+* :doc:`/plugins/replaygain`: Stop applying replaygain directly to source files
+  when using the mp3gain backend. :bug:`1316`
+* Path queries are case-sensitive on non-Windows OSes. :bug:`1165`
+* :doc:`/plugins/lyrics`: Silence a warning about insecure requests in the new
+  MusixMatch backend. :bug:`1204`
+* Fix a crash when ``beet`` is invoked without arguments. :bug:`1205`
+  :bug:`1207`
+* :doc:`/plugins/fetchart`: Do not attempt to import directories as album art.
+  :bug:`1177` :bug:`1211`
+* :doc:`/plugins/mpdstats`: Avoid double-counting some play events. :bug:`773`
+  :bug:`1212`
+* Fix a crash when the importer deals with Unicode metadata in ``--pretend``
+  mode. :bug:`1214`
+* :doc:`/plugins/smartplaylist`: Fix ``album_query`` so that individual files
+  are added to the playlist instead of directories. :bug:`1225`
+* Remove the ``beatport`` plugin. `Beatport`_ has shut off public access to
+  their API and denied our request for an account. We have not heard from the
+  company since 2013, so we are assuming access will not be restored.
+* Incremental imports now (once again) show a "skipped N directories" message.
+* :doc:`/plugins/embedart`: Handle errors in ImageMagick's output. :bug:`1241`
+* :doc:`/plugins/keyfinder`: Parse the underlying tool's output more robustly.
+  :bug:`1248`
+* :doc:`/plugins/embedart`: We now show a comprehensible error message when
+  ``beet embedart -f FILE`` is given a non-existent path. :bug:`1252`
+* Fix a crash when a file has an unrecognized image type tag. Thanks to
+  Matthias Kiefer. :bug:`1260`
+* :doc:`/plugins/importfeeds` and :doc:`/plugins/smartplaylist`: Automatically
+  create parent directories for playlist files (instead of crashing when the
+  parent directory does not exist). :bug:`1266`
+* The :ref:`write-cmd` command no longer tries to "write" non-writable fields,
+  such as the bitrate. :bug:`1268`
+* The error message when MusicBrainz is not reachable on the network is now
+  much clearer. Thanks to Tom Jaspers. :bug:`1190` :bug:`1272`
+* Improve error messages when parsing query strings with shlex. :bug:`1290`
+* :doc:`/plugins/embedart`: Fix a crash that occured when used together
+  with the *check* plugin. :bug:`1241`
+* :doc:`/plugins/scrub`: Log an error instead of stopping when the ``beet
+  scrub`` command cannot write a file. Also, avoid problems on Windows with
+  Unicode filenames. :bug:`1297`
+* :doc:`/plugins/discogs`: Handle and log more kinds of communication
+  errors. :bug:`1299` :bug:`1305`
+* :doc:`/plugins/lastgenre`: Bugs in the `pylast` library can no longer crash
+  beets.
+* :doc:`/plugins/convert`: You can now configure the temporary directory for
+  conversions. Thanks to :user:`autochthe`. :bug:`1382` :bug:`1383`
+* :doc:`/plugins/rewrite`: Fix a regression that prevented the plugin's
+  rewriting from applying to album-level fields like ``$albumartist``.
+  :bug:`1393`
+* :doc:`/plugins/play`: The plugin now sorts items according to the
+  configuration in album mode.
+* :doc:`/plugins/fetchart`: The name for extracted art files is taken from the
+  ``art_filename`` configuration option. :bug:`1258`
+* When there's a parse error in a query (for example, when you type a
+  malformed date in a :ref:`date query <datequery>`), beets now stops with an
+  error instead of silently ignoring the query component.
+
+For developers:
+
+* The ``database_change`` event now sends the item or album that is subject to
+  a change.
+* The ``OptionParser`` is now a ``CommonOptionsParser`` that offers facilities
+  for adding usual options (``--album``, ``--path`` and ``--format``). See
+  :ref:`add_subcommands`. :bug:`1271`
+* The logging system in beets has been overhauled. Plugins now each have their
+  own logger, which helps by automatically adjusting the verbosity level in
+  import mode and by prefixing the plugin's name.  Logging levels are
+  dynamically set when a plugin is called, depending on how it is called
+  (import stage, event or direct command).  Finally, logging calls can (and
+  should!) use modern ``{}``-style string formatting lazily. See
+  :ref:`plugin-logging` in the plugin API docs.
+* A new ``import_task_created`` event lets you manipulate import tasks
+  immediately after they are initialized. It's also possible to replace the
+  originally created tasks by returning new ones using this event.
+
+.. _bs1770gain: http://bs1770gain.sourceforge.net
+
+
+1.3.10 (January 5, 2015)
+------------------------
+
+This version adds a healthy helping of new features and fixes a critical
+MPEG-4--related bug. There are more lyrics sources, there new plugins for
+managing permissions and integrating with `Plex`_, and the importer has a new
+``--pretend`` flag that shows which music *would* be imported.
+
+One backwards-compatibility note: the :doc:`/plugins/lyrics` now requires the
+`requests`_ library. If you use this plugin, you will need to install the
+library by typing ``pip install requests`` or the equivalent for your OS.
+
+Also, as an advance warning, this will be one of the last releases to support
+Python 2.6. If you have a system that cannot run Python 2.7, please consider
+upgrading soon.
+
+The new features are:
+
+* A new :doc:`/plugins/permissions` makes it easy to fix permissions on music
+  files as they are imported. Thanks to :user:`xsteadfastx`. :bug:`1098`
+* A new :doc:`/plugins/plexupdate` lets you notify a `Plex`_ server when the
+  database changes. Thanks again to xsteadfastx. :bug:`1120`
+* The :ref:`import-cmd` command now has a ``--pretend`` flag that lists the
+  files that will be imported. Thanks to :user:`mried`. :bug:`1162`
+* :doc:`/plugins/lyrics`: Add `Musixmatch`_ source and introduce a new
+  ``sources`` config option that lets you choose exactly where to look for
+  lyrics and in which order.
+* :doc:`/plugins/lyrics`: Add Brazilian and Spanish sources to Google custom
+  search engine.
+* Add a warning when importing a directory that contains no music. :bug:`1116`
+  :bug:`1127`
+* :doc:`/plugins/zero`: Can now remove embedded images. :bug:`1129` :bug:`1100`
+* The :ref:`config-cmd` command can now be used to edit the configuration even
+  when it has syntax errors. :bug:`1123` :bug:`1128`
+* :doc:`/plugins/lyrics`: Added a new ``force`` config option. :bug:`1150`
+
+As usual, there are loads of little fixes and improvements:
+
+* Fix a new crash with the latest version of Mutagen (1.26).
+* :doc:`/plugins/lyrics`: Avoid fetching truncated lyrics from the Google
+  backed by merging text blocks separated by empty ``<div>`` tags before
+  scraping.
+* We now print a better error message when the database file is corrupted.
+* :doc:`/plugins/discogs`: Only prompt for authentication when running the
+  :ref:`import-cmd` command. :bug:`1123`
+* When deleting fields with the :ref:`modify-cmd` command, do not crash when
+  the field cannot be removed (i.e., when it does not exist, when it is a
+  built-in field, or when it is a computed field). :bug:`1124`
+* The deprecated ``echonest_tempo`` plugin has been removed. Please use the
+  ``echonest`` plugin instead.
+* ``echonest`` plugin: Fingerprint-based lookup has been removed in
+  accordance with `API changes`_. :bug:`1121`
+* ``echonest`` plugin: Avoid a crash when the song has no duration
+  information. :bug:`896`
+* :doc:`/plugins/lyrics`: Avoid a crash when retrieving non-ASCII lyrics from
+  the Google backend. :bug:`1135` :bug:`1136`
+* :doc:`/plugins/smartplaylist`: Sort specifiers are now respected in queries.
+  Thanks to :user:`djl`. :bug:`1138` :bug:`1137`
+* :doc:`/plugins/ftintitle` and :doc:`/plugins/lyrics`: Featuring artists can
+  now be detected when they use the Spanish word *con*. :bug:`1060`
+  :bug:`1143`
+* :doc:`/plugins/mbcollection`: Fix an "HTTP 400" error caused by a change in
+  the MusicBrainz API. :bug:`1152`
+* The ``%`` and ``_`` characters in path queries do not invoke their
+  special SQL meaning anymore. :bug:`1146`
+* :doc:`/plugins/convert`: Command-line argument construction now works
+  on Windows. Thanks to :user:`mluds`. :bug:`1026` :bug:`1157` :bug:`1158`
+* :doc:`/plugins/embedart`: Fix an erroneous missing-art error on Windows.
+  Thanks to :user:`mluds`. :bug:`1163`
+* :doc:`/plugins/importadded`: Now works with in-place and symlinked imports.
+  :bug:`1170`
+* :doc:`/plugins/ftintitle`: The plugin is now quiet when it runs as part of
+  the import process. Thanks to :user:`Freso`. :bug:`1176` :bug:`1172`
+* :doc:`/plugins/ftintitle`: Fix weird behavior when the same artist appears
+  twice in the artist string. Thanks to Marc Addeo. :bug:`1179` :bug:`1181`
+* :doc:`/plugins/lastgenre`: Match songs more robustly when they contain
+  dashes. Thanks to :user:`djl`. :bug:`1156`
+* The :ref:`config-cmd` command can now use ``$EDITOR`` variables with
+  arguments.
+
+.. _API changes: http://developer.echonest.com/forums/thread/3650
+.. _Plex: https://plex.tv/
+.. _musixmatch: https://www.musixmatch.com/
+
+1.3.9 (November 17, 2014)
+-------------------------
+
+This release adds two new standard plugins to beets: one for synchronizing
+Last.fm listening data and one for integrating with Linux desktops. And at
+long last, imports can now create symbolic links to music files instead of
+copying or moving them. We also gained the ability to search for album art on
+the iTunes Store and a new way to compute ReplayGain levels.
+
+The major new features are:
+
+* A new :doc:`/plugins/lastimport` lets you download your play count data from
+  Last.fm into a flexible attribute. Thanks to Rafael Bodill.
+* A new :doc:`/plugins/freedesktop` creates metadata files for
+  Freedesktop.org--compliant file managers. Thanks to :user:`kerobaros`.
+  :bug:`1056`, :bug:`707`
+* A new :ref:`link` option in the ``import`` section creates symbolic links
+  during import instead of moving or copying. Thanks to Rovanion Luckey.
+  :bug:`710`, :bug:`114`
+* :doc:`/plugins/fetchart`: You can now search for art on the iTunes Store.
+  There's also a new ``sources`` config option that lets you choose exactly
+  where to look for images and in which order.
+* :doc:`/plugins/replaygain`: A new Python Audio Tools backend was added.
+  Thanks to Francesco Rubino. :bug:`1070`
 * :doc:`/plugins/embedart`: You can now automatically check that new art looks
   similar to existing art---ensuring that you only get a better "version" of
   the art you already have. See :ref:`image-similarity-check`.
-* Re-imports of your existing music (see :ref:`reimport`) now preserve its
-  added date and flexible attributes. Thanks to Stig Inge Lea Bjørnsen.
-* :doc:`/plugins/bpd`: Add a new configuration option for setting the default
-  volume. Thanks to IndiGit.
+* :doc:`/plugins/ftintitle`: The plugin now runs automatically on import. To
+  disable this, unset the ``auto`` config flag.
+
+There are also core improvements and other substantial additions:
+
 * The ``media`` attribute is now a *track-level field* instead of an
   album-level one. This field stores the delivery mechanism for the music, so
   in its album-level incarnation, it could not represent heterogeneous
   releases---for example, an album consisting of a CD and a DVD. Now, tracks
   accurately indicate the media they appear on. Thanks to Heinz Wiesinger.
+* Re-imports of your existing music (see :ref:`reimport`) now preserve its
+  added date and flexible attributes. Thanks to Stig Inge Lea Bjørnsen.
+* Slow queries, such as those over flexible attributes, should now be much
+  faster when used with certain commands---notably, the :doc:`/plugins/play`.
+* :doc:`/plugins/bpd`: Add a new configuration option for setting the default
+  volume. Thanks to IndiGit.
+* :doc:`/plugins/embedart`: A new ``ifempty`` config option lets you only
+  embed album art when no album art is present. Thanks to kerobaros.
+* :doc:`/plugins/discogs`: Authenticate with the Discogs server. The plugin
+  now requires a Discogs account due to new API restrictions. Thanks to
+  :user:`multikatt`. :bug:`1027`, :bug:`1040`
 
-Fixes:
+And countless little improvements and fixes:
 
-* :doc:`/plugins/convert`: Does not crash when embedding cover art
+* Standard cover art in APEv2 metadata is now supported. Thanks to Matthias
+  Kiefer. :bug:`1042`
+* :doc:`/plugins/convert`: Avoid a crash when embedding cover art
   fails.
 * :doc:`/plugins/mpdstats`: Fix an error on start (introduced in the previous
   version). Thanks to Zach Denton.
@@ -33,17 +1175,49 @@ Fixes:
   quantities (track numbers and durations), which was often confusing.
 * Date-based queries that are malformed (not parse-able) no longer crash
   beets and instead fail silently.
-* Slow queries, such as those over flexible attributes, should now be much
-  faster when used with certain commands---notably, the :doc:`/plugins/play`.
 * :doc:`/plugins/duplicates`: Emit an error when the ``checksum`` config
   option is set incorrectly.
 * The migration from pre-1.1, non-YAML configuration files has been removed.
   If you need to upgrade an old config file, use an older version of beets
-  temporarily
+  temporarily.
 * :doc:`/plugins/discogs`: Recover from HTTP errors when communicating with
   the Discogs servers. Thanks to Dustin Rodriguez.
 * :doc:`/plugins/embedart`: Do not log "embedding album art into..." messages
   during the import process.
+* Fix a crash in the autotagger when files had only whitespace in their
+  metadata.
+* :doc:`/plugins/play`: Fix a potential crash when the command outputs special
+  characters. :bug:`1041`
+* :doc:`/plugins/web`: Queries typed into the search field are now treated as
+  separate query components. :bug:`1045`
+* Date tags that use slashes instead of dashes as separators are now
+  interpreted correctly. And WMA (ASF) files now map the ``comments`` field to
+  the "Description" tag (in addition to "WM/Comments"). Thanks to Matthias
+  Kiefer. :bug:`1043`
+* :doc:`/plugins/embedart`: Avoid resizing the image multiple times when
+  embedding into an album. Thanks to :user:`kerobaros`. :bug:`1028`,
+  :bug:`1036`
+* :doc:`/plugins/discogs`: Avoid a situation where a trailing comma could be
+  appended to some artist names. :bug:`1049`
+* The output of the :ref:`stats-cmd` command is slightly different: the
+  approximate size is now marked as such, and the total number of seconds only
+  appears in exact mode.
+* :doc:`/plugins/convert`: A new ``copy_album_art`` option puts images
+  alongside converted files. Thanks to Ángel Alonso. :bug:`1050`, :bug:`1055`
+* There is no longer a "conflict" between two plugins that declare the same
+  field with the same type. Thanks to Peter Schnebel. :bug:`1059` :bug:`1061`
+* :doc:`/plugins/chroma`: Limit the number of releases and recordings fetched
+  as the result of an Acoustid match to avoid extremely long processing times
+  for very popular music. :bug:`1068`
+* Fix an issue where modifying an album's field without actually changing it
+  would not update the corresponding tracks to bring differing tracks back in
+  line with the album. :bug:`856`
+* ``echonest`` plugin: When communicating with the Echo Nest servers
+  fails repeatedly, log an error instead of exiting. :bug:`1096`
+* :doc:`/plugins/lyrics`: Avoid an error when the Google source returns a
+  result without a title. Thanks to Alberto Leal. :bug:`1097`
+* Importing an archive will no longer leave temporary files behind in
+  ``/tmp``. Thanks to :user:`multikatt`. :bug:`1067`, :bug:`1091`
 
 
 1.3.8 (September 17, 2014)
@@ -58,7 +1232,7 @@ If you want to see all your songs in reverse chronological order, just type
 
 Flexible field types mean that some functionality that has previously only
 worked for built-in fields, like range queries, can now work with plugin- and
-user-defined fields too. For starters, the :doc:`/plugins/echonest/` and
+user-defined fields too. For starters, the ``echonest`` plugin and
 :doc:`/plugins/mpdstats` now mark the types of the fields they provide---so
 you can now say, for example, ``beet ls liveness:0.5..1.5`` for the Echo Nest
 "liveness" attribute. The :doc:`/plugins/types` makes it easy to specify field
@@ -302,14 +1476,14 @@ new in this release:
 * A new `initial_key` field is available in the database and files' tags. You
   can set the field manually using a command like ``beet modify
   initial_key=Am``.
-* The :doc:`/plugins/echonest` sets the `initial_key` field if the data is
+* The ``echonest`` plugin sets the `initial_key` field if the data is
   available.
 * A new :doc:`/plugins/keyfinder` runs a command-line tool to get the key from
   audio data and store it in the `initial_key` field.
 
 There are also many bug fixes and little enhancements:
 
-* :doc:`/plugins/echonest`: Truncate files larger than 50MB before uploading for
+* ``echonest`` plugin: Truncate files larger than 50MB before uploading for
   analysis.
 * :doc:`/plugins/fetchart`: Fix a crash when the server does not specify a
   content type. Thanks to Lee Reinhardt.
@@ -366,7 +1540,7 @@ New stuff:
   queries (combined with "or" logic). Album-level queries are also now
   possible and automatic playlist regeneration can now be disabled. Thanks to
   brilnius.
-* :doc:`/plugins/echonest`: Echo Nest similarity now weights the tempo in
+* ``echonest`` plugin: Echo Nest similarity now weights the tempo in
   better proportion to other metrics. Also, options were added to specify
   custom thresholds and output formats. Thanks to Adam M.
 * Added the :ref:`after_write <plugin_events>` plugin event.
@@ -387,7 +1561,7 @@ Fixes:
   legibility).
 * Fixed a regression that made it impossible to use the :ref:`modify-cmd`
   command to add new flexible fields. Thanks to brilnius.
-* :doc:`/plugins/echonest`: Avoid crashing when the audio analysis fails.
+* ``echonest`` plugin: Avoid crashing when the audio analysis fails.
   Thanks to Pedro Silva.
 * :doc:`/plugins/duplicates`: Fix checksumming command execution for files
   with quotation marks in their names. Thanks again to Pedro Silva.
@@ -463,7 +1637,7 @@ Unrelated new stuff:
 
 Other little fixes:
 
-* :doc:`/plugins/echonest`: Tempo (BPM) is now always stored as an integer.
+* ``echonest`` plugin: Tempo (BPM) is now always stored as an integer.
   Thanks to Heinz Wiesinger.
 * Fix Python 2.6 compatibility in some logging statements in
   :doc:`/plugins/chroma` and :doc:`/plugins/lastgenre`.
@@ -504,7 +1678,7 @@ Other little fixes:
   no changes are necessary. Thanks to brilnius.
 * :doc:`/plugins/fetchart`: When using the ``remote_priority`` config option,
   local image files are no longer completely ignored.
-* :doc:`/plugins/echonest`: Fix an issue causing the plugin to appear twice in
+* ``echonest`` plugin: Fix an issue causing the plugin to appear twice in
   the output of the ``beet version`` command.
 * :doc:`/plugins/lastgenre`: Fix an occasional crash when no tag weight was
   returned by Last.fm.
@@ -529,7 +1703,7 @@ into sync with your database. Thanks to Heinz Wiesinger.
 
 We added some plugins and overhauled some existing ones:
 
-* The new :doc:`/plugins/echonest` plugin can fetch a wide range of `acoustic
+* The new ``echonest`` plugin plugin can fetch a wide range of `acoustic
   attributes`_ from `The Echo Nest`_, including the "speechiness" and
   "liveness" of each track. The new plugin supersedes an older version
   (``echonest_tempo``) that only fetched the BPM field. Thanks to Pedro Silva
@@ -567,7 +1741,7 @@ As usual, there are also innumerable little fixes and improvements:
 * :doc:`/plugins/missing`: Avoid a possible error when an album's
   ``tracktotal`` field is missing.
 * :doc:`/plugins/ftintitle`: Fix an error when the sort artist is missing.
-* :doc:`/plugins/echonest_tempo`: The plugin should now match songs more
+* ``echonest_tempo``: The plugin should now match songs more
   reliably (i.e., fewer "no tempo found" messages). Thanks to Peter Schnebel.
 * :doc:`/plugins/convert`: Fix an "Item has no library" error when using the
   ``auto`` config option.
@@ -633,7 +1807,7 @@ And some fixes:
   (instead of failing with an API error).
 * :doc:`/plugins/info`: Fail gracefully when used erroneously with a
   directory.
-* :doc:`/plugins/echonest_tempo`: Fix an issue where the plugin could use the
+* ``echonest_tempo``: Fix an issue where the plugin could use the
   tempo from the wrong song when the API did not contain the requested song.
 * Fix a crash when a file's metadata included a very large number (one wider
   than 64 bits). These huge numbers are now replaced with zeroes in the
@@ -699,7 +1873,7 @@ previous versions would spit out a warning and then list your entire library.
 
 There's more detail than you could ever need `on the beets blog`_.
 
-.. _on the beets blog: http://beets.radbox.org/blog/flexattr.html
+.. _on the beets blog: http://beets.io/blog/flexattr.html
 
 
 1.2.2 (August 27, 2013)
@@ -767,12 +1941,12 @@ And some little enhancements and bug fixes:
   Thanks to John Hawthorn.
 * :doc:`/plugins/web`: Item and album counts are now exposed through the API
   for use with the Tomahawk resolver. Thanks to Uwe L. Korn.
-* Python 2.6 compatibility for :doc:`/plugins/beatport`,
+* Python 2.6 compatibility for ``beatport``,
   :doc:`/plugins/missing`, and :doc:`/plugins/duplicates`. Thanks to Wesley
   Bitter and Pedro Silva.
 * Don't move the config file during a null migration. Thanks to Theofilos
   Intzoglou.
-* Fix an occasional crash in the :doc:`/plugins/beatport` when a length
+* Fix an occasional crash in the ``beatport`` when a length
   field was missing from the API response. Thanks to Timothy Appnel.
 * :doc:`/plugins/scrub`: Handle and log I/O errors.
 * :doc:`/plugins/lyrics`: The Google backend should now turn up more results.
@@ -797,7 +1971,7 @@ these plugins, the importer will start showing you new kinds of matches:
 
 * New :doc:`/plugins/discogs`: Get matches from the `Discogs`_ database.
   Thanks to Artem Ponomarenko and Tai Lee.
-* New :doc:`/plugins/beatport`: Get matches from the `Beatport`_ database.
+* New ``beatport`` plugin: Get matches from the `Beatport`_ database.
   Thanks to Johannes Baiter.
 
 We also have two other new plugins that can scan your library to check for
@@ -905,8 +2079,7 @@ the new configuration system. The album art and lyrics plugins also got a
 little love.
 
 If you're upgrading from 1.0.0 or earlier, this release (like the 1.1 betas)
-will automatically migrate your configuration to the new system. See
-:doc:`/guides/migration`.
+will automatically migrate your configuration to the new system.
 
 * :doc:`/plugins/embedart`: The ``embedart`` command now embeds each album's
   associated art by default. The ``--file`` option invokes the old behavior,
@@ -959,7 +2132,7 @@ query syntax.
 New configuration options:
 
 * :ref:`languages` controls the preferred languages when selecting an alias
-  from MusicBrainz. This feature requires `python-musicbrainz-ngs`_ 0.3 or
+  from MusicBrainz. This feature requires `python-musicbrainzngs`_ 0.3 or
   later. Thanks to Sam Doshi.
 * :ref:`detail` enables a mode where all tracks are listed in the importer UI,
   as opposed to only changed tracks.
@@ -989,7 +2162,7 @@ Other stuff:
 * :doc:`/plugins/chroma`: A new ``fingerprint`` command lets you generate and
   store fingerprints for items that don't yet have them. One more round of
   applause for Lucas Duailibe.
-* :doc:`/plugins/echonest_tempo`: API errors now issue a warning instead of
+* ``echonest_tempo``: API errors now issue a warning instead of
   exiting with an exception. We also avoid an error when track metadata
   contains newlines.
 * When the importer encounters an error (insufficient permissions, for
@@ -1013,7 +2186,7 @@ Other stuff:
   import command. Thanks to Lucas Duailibe.
 * :doc:`/plugins/mbcollection`: Show friendly, human-readable errors when
   MusicBrainz exceptions occur.
-* :doc:`/plugins/echonest_tempo`: Catch socket errors that are not handled by
+* ``echonest_tempo``: Catch socket errors that are not handled by
   the Echo Nest library.
 * :doc:`/plugins/chroma`: Catch Acoustid Web service errors when submitting
   fingerprints.
@@ -1112,7 +2285,7 @@ Other new stuff:
   Dang Mai Hai.
 * :doc:`/plugins/bpd`: Browse by album artist and album artist sort name.
   Thanks to Steinþór Pálsson.
-* :doc:`/plugins/echonest_tempo`: Don't attempt a lookup when the artist or
+* ``echonest_tempo``: Don't attempt a lookup when the artist or
   track title is missing.
 * Fix an error when migrating the ``.beetsstate`` file on Windows.
 * A nicer error message is now given when the configuration file contains tabs.
@@ -1126,8 +2299,7 @@ Other new stuff:
 
 This release entirely revamps beets' configuration system. The configuration
 file is now a `YAML`_ document and is located, along with other support files,
-in a common directory (e.g., ``~/.config/beets`` on Unix-like systems). If
-you're upgrading from an earlier version, please see :doc:`/guides/migration`.
+in a common directory (e.g., ``~/.config/beets`` on Unix-like systems).
 
 .. _YAML: http://en.wikipedia.org/wiki/YAML
 
@@ -1178,7 +2350,7 @@ This second release candidate follows quickly after rc1 and fixes a few small
 bugs found since that release. There were a couple of regressions and some bugs
 in a newly added plugin.
 
-* :doc:`/plugins/echonest_tempo`: If the Echo Nest API limit is exceeded or a
+* ``echonest_tempo``: If the Echo Nest API limit is exceeded or a
   communication error occurs, the plugin now waits and tries again instead of
   crashing. Thanks to Zach Denton.
 * :doc:`/plugins/fetchart`: Fix a regression that caused crashes when art was
@@ -1208,7 +2380,7 @@ begins today on features for version 1.1.
 * New plugin: :doc:`/plugins/fuzzy` lets you find albums and tracks
   using **fuzzy string matching** so you don't have to type (or even remember)
   their exact names. Thanks to Philippe Mongeau.
-* New plugin: :doc:`/plugins/echonest_tempo` fetches **tempo** (BPM) information
+* New plugin: ``echonest_tempo`` fetches **tempo** (BPM) information
   from `The Echo Nest`_. Thanks to David Brenner.
 * New plugin: :doc:`/plugins/the` adds a template function that helps format
   text for nicely-sorted directory listings. Thanks to Blemjhoo Tezoulbr.
@@ -1289,7 +2461,7 @@ begins today on features for version 1.1.
   unintentionally loading the plugins they contain.
 
 .. _The Echo Nest: http://the.echonest.com/
-.. _Tomahawk resolver: http://beets.radbox.org/blog/tomahawk-resolver.html
+.. _Tomahawk resolver: http://beets.io/blog/tomahawk-resolver.html
 .. _mp3gain: http://mp3gain.sourceforge.net/download.php
 .. _aacgain: http://aacgain.altosdesign.com
 
@@ -1486,7 +2658,7 @@ release.
 * Significant internal restructuring to avoid SQLite locking errors. As part of
   these changes, the not-very-useful "save" plugin event has been removed.
 
-.. _pyacoustid: https://github.com/sampsyo/pyacoustid
+.. _pyacoustid: https://github.com/beetbox/pyacoustid
 
 
 1.0b13 (March 16, 2012)
@@ -1626,7 +2798,7 @@ tracks from a given release. Two other new plugins are also included with this
 release: one for assigning genres and another for ReplayGain analysis.
 
 * Beets now communicates with MusicBrainz via the new `Next Generation Schema`_
-  (NGS) service via `python-musicbrainz-ngs`_. The bindings are included with
+  (NGS) service via `python-musicbrainzngs`_. The bindings are included with
   this version of beets, but a future version will make them an external
   dependency.
 * The importer now detects **multi-disc albums** and tags them together. Using a
@@ -1672,7 +2844,7 @@ release: one for assigning genres and another for ReplayGain analysis.
 
 .. _KraYmer: https://github.com/KraYmer
 .. _Next Generation Schema: http://musicbrainz.org/doc/XML_Web_Service/Version_2
-.. _python-musicbrainz-ngs: https://github.com/alastair/python-musicbrainz-ngs
+.. _python-musicbrainzngs: https://github.com/alastair/python-musicbrainzngs
 .. _acoustid: http://acoustid.org/
 .. _Peter Brunner: https://github.com/Lugoues
 .. _Simon Chopin: https://github.com/laarmen
@@ -2041,7 +3213,7 @@ issue involves correct ordering of autotagged albums.
 
 * Added `` beet version`` command that just shows the current release version.
 
-.. _upstream bug: http://code.google.com/p/mutagen/issues/detail?id=7
+.. _upstream bug: https://github.com/quodlibet/mutagen/issues/7
 .. _Bluelet: https://github.com/sampsyo/bluelet
 
 1.0b5 (September 28, 2010)
@@ -2252,16 +3424,16 @@ BPD). To "upgrade" an old database, you can use the included ``albumify`` plugin
   your library path format strings like ``$artist - $album ($format)`` to get
   directories with names like ``Paul Simon - Graceland (FLAC)``.
 
-.. _for the future: http://code.google.com/p/beets/issues/detail?id=69
+.. _for the future: https://github.com/google-code-export/beets/issues/69
 .. _the beetsplug directory:
-    http://code.google.com/p/beets/source/browse/#hg/beetsplug
+   https://github.com/beetbox/beets/tree/master/beetsplug
 
 Beets also now has its first third-party plugin: `beetfs`_, by Martin Eve! It
 exposes your music in a FUSE filesystem using a custom directory structure. Even
 cooler: it lets you keep your files intact on-disk while correcting their tags
 when accessed through FUSE. Check it out!
 
-.. _beetfs: http://code.google.com/p/beetfs/
+.. _beetfs: https://github.com/jbaiter/beetfs
 
 1.0b2 (July 7, 2010)
 --------------------

@@ -1,18 +1,19 @@
-# Copyright (c) 2011, Jeffrey Aylesworth <jeffrey@aylesworth.ca>
+# -*- coding: utf-8 -*-
+# This file is part of beets.
+# Copyright (c) 2011, Jeffrey Aylesworth <mail@jeffrey.red>
 #
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
 #
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
 
-from __future__ import print_function
+from __future__ import division, absolute_import, print_function
 
 from beets.plugins import BeetsPlugin
 from beets.ui import Subcommand
@@ -21,12 +22,9 @@ from beets import config
 import musicbrainzngs
 
 import re
-import logging
 
 SUBMISSION_CHUNK_SIZE = 200
 UUID_REGEX = r'^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$'
-
-log = logging.getLogger('beets.bpd')
 
 
 def mb_call(func, *args, **kwargs):
@@ -35,11 +33,11 @@ def mb_call(func, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except musicbrainzngs.AuthenticationError:
-        raise ui.UserError('authentication with MusicBrainz failed')
-    except musicbrainzngs.ResponseError as exc:
-        raise ui.UserError('MusicBrainz API error: {0}'.format(exc))
+        raise ui.UserError(u'authentication with MusicBrainz failed')
+    except (musicbrainzngs.ResponseError, musicbrainzngs.NetworkError) as exc:
+        raise ui.UserError(u'MusicBrainz API error: {0}'.format(exc))
     except musicbrainzngs.UsageError:
-        raise ui.UserError('MusicBrainz credentials missing')
+        raise ui.UserError(u'MusicBrainz credentials missing')
 
 
 def submit_albums(collection_id, release_ids):
@@ -54,56 +52,63 @@ def submit_albums(collection_id, release_ids):
         )
 
 
-def update_album_list(album_list):
-    """Update the MusicBrainz colleciton from a list of Beets albums
-    """
-    # Get the collection to modify.
-    collections = mb_call(musicbrainzngs.get_collections)
-    if not collections['collection-list']:
-        raise ui.UserError('no collections exist for user')
-    collection_id = collections['collection-list'][0]['id']
-
-    # Get a list of all the album IDs.
-    album_ids = []
-    for album in album_list:
-        aid = album.mb_albumid
-        if aid:
-            if re.match(UUID_REGEX, aid):
-                album_ids.append(aid)
-            else:
-                log.info(u'skipping invalid MBID: {0}'.format(aid))
-
-    # Submit to MusicBrainz.
-    print('Updating MusicBrainz collection {0}...'.format(collection_id))
-    submit_albums(collection_id, album_ids)
-    print('...MusicBrainz collection updated.')
-
-
-def update_collection(lib, opts, args):
-    update_album_list(lib.albums())
-
-
-update_mb_collection_cmd = Subcommand('mbupdate',
-                                      help='Update MusicBrainz collection')
-update_mb_collection_cmd.func = update_collection
-
-
 class MusicBrainzCollectionPlugin(BeetsPlugin):
     def __init__(self):
         super(MusicBrainzCollectionPlugin, self).__init__()
+        config['musicbrainz']['pass'].redact = True
         musicbrainzngs.auth(
-            config['musicbrainz']['user'].get(unicode),
-            config['musicbrainz']['pass'].get(unicode),
+            config['musicbrainz']['user'].as_str(),
+            config['musicbrainz']['pass'].as_str(),
         )
         self.config.add({'auto': False})
         if self.config['auto']:
             self.import_stages = [self.imported]
 
     def commands(self):
-        return [update_mb_collection_cmd]
+        mbupdate = Subcommand('mbupdate',
+                              help=u'Update MusicBrainz collection')
+        mbupdate.func = self.update_collection
+        return [mbupdate]
+
+    def update_collection(self, lib, opts, args):
+        self.update_album_list(lib.albums())
 
     def imported(self, session, task):
         """Add each imported album to the collection.
         """
         if task.is_album:
-            update_album_list([task.album])
+            self.update_album_list([task.album])
+
+    def update_album_list(self, album_list):
+        """Update the MusicBrainz colleciton from a list of Beets albums
+        """
+        # Get the available collections.
+        collections = mb_call(musicbrainzngs.get_collections)
+        if not collections['collection-list']:
+            raise ui.UserError(u'no collections exist for user')
+
+        # Get the first release collection. MusicBrainz also has event
+        # collections, so we need to avoid adding to those.
+        for collection in collections['collection-list']:
+            if 'release-count' in collection:
+                collection_id = collection['id']
+                break
+        else:
+            raise ui.UserError(u'No collection found.')
+
+        # Get a list of all the album IDs.
+        album_ids = []
+        for album in album_list:
+            aid = album.mb_albumid
+            if aid:
+                if re.match(UUID_REGEX, aid):
+                    album_ids.append(aid)
+                else:
+                    self._log.info(u'skipping invalid MBID: {0}', aid)
+
+        # Submit to MusicBrainz.
+        self._log.info(
+            u'Updating MusicBrainz collection {0}...', collection_id
+        )
+        submit_albums(collection_id, album_ids)
+        self._log.info(u'...MusicBrainz collection updated.')

@@ -74,6 +74,7 @@ bangsawan
 bantowbol
 barbershop music
 barndance
+baroque
 baroque music
 baroque pop
 bass music
@@ -265,6 +266,7 @@ classic
 classic country
 classic female blues
 classic rock
+classical
 classical music
 classical music era
 clicks n cuts
@@ -275,6 +277,7 @@ coimbra fado
 coladeira
 colombianas
 combined rhythm
+comedy
 comedy rap
 comedy rock
 comic opera
@@ -288,6 +291,7 @@ congo
 conjunto
 contemporary christian
 contemporary christian music
+contemporary classical
 contemporary r&b
 contonbley
 contradanza
@@ -647,6 +651,7 @@ hua'er
 huasteco
 huayno
 hula
+humor
 humppa
 hunguhungu
 hyangak
@@ -964,6 +969,7 @@ minstrel show
 minuet
 mirolóyia
 modal jazz
+modern classical
 modern classical music
 modern laika
 modern rock
@@ -1079,6 +1085,7 @@ opera
 operatic pop
 oratorio
 orchestra
+orchestral
 organ trio
 organic ambient
 organum
@@ -1217,6 +1224,9 @@ rebetiko
 red dirt
 reel
 reggae
+reggae 110
+reggae bultrón
+reggae en español
 reggae fusion
 reggae highlife
 reggaefusion
@@ -1240,6 +1250,7 @@ rock opera
 rockabilly
 rocksteady
 rococo
+romantic flow
 romantic period in music
 rondeaux
 ronggeng
@@ -1251,6 +1262,7 @@ russian pop
 rímur
 sabar
 sacred harp
+sacred music
 sadcore
 saibara
 sakara
@@ -1352,6 +1364,7 @@ sprechgesang
 square dance
 squee
 st. louis blues
+stand-up
 steelband
 stoner metal
 stoner rock
@@ -1377,6 +1390,7 @@ swing
 swing music
 swingbeat
 sygyt
+symphonic
 symphonic black metal
 symphonic metal
 symphonic poem

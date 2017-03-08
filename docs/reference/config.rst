@@ -64,6 +64,12 @@ plugins
 A space-separated list of plugin module names to load. See
 :ref:`using-plugins`.
 
+include
+~~~~~~~
+
+A space-separated list of extra configuration files to include.
+Filenames are relative to the directory containing ``config.yaml``.
+
 pluginpath
 ~~~~~~~~~~
 
@@ -77,13 +83,27 @@ have multiple paths, format them as a YAML list like so::
         - /path/one
         - /path/two
 
+.. _ignore:
+
 ignore
 ~~~~~~
 
 A list of glob patterns specifying file and directory names to be ignored when
-importing. By default, this consists of ``.*``,  ``*~``, and ``System Volume
-Information`` (i.e., beets ignores Unix-style hidden files, backup files, and
-a directory that appears at the root of some Windows filesystems).
+importing. By default, this consists of ``.*``,  ``*~``,  ``System Volume
+Information``, ``lost+found`` (i.e., beets ignores Unix-style hidden files,
+backup files, and directories that appears at the root of some Linux and Windows
+filesystems).
+
+.. _ignore_hidden:
+
+ignore_hidden
+~~~~~~~~~~~~~
+
+Either ``yes`` or ``no``; whether to ignore hidden files when importing. On
+Windows, the "Hidden" property of files is used to detect whether or not a file
+is hidden. On OS X, the file's "IsHidden" flag is used to detect whether or not
+a file is hidden. On both OS X and other platforms (excluding Windows), files
+(and directories) starting with a dot are detected as hidden files.
 
 .. _replace:
 
@@ -118,6 +138,11 @@ removes the Windows "reserved characters" (useful even on Unix for for
 compatibility with Windows-influenced network filesystems like Samba).
 Trailing dots and trailing whitespace, which can cause problems on Windows
 clients, are also removed.
+
+When replacements other than the defaults are used, it is possible that they
+will increase the length of the path. In the scenario where this leads to a
+conflict with the maximum filename length, the default replacements will be
+used to resolve the conflict and beets will display a warning.
 
 Note that paths might contain special characters such as typographical
 quotes (``“”``). With the configuration above, those will not be
@@ -159,34 +184,37 @@ threaded
 ~~~~~~~~
 
 Either ``yes`` or ``no``, indicating whether the autotagger should use
-multiple threads. This makes things faster but may behave strangely.
+multiple threads. This makes things substantially faster by overlapping work:
+for example, it can copy files for one album in parallel with looking up data
+in MusicBrainz for a different album. You may want to disable this when
+debugging problems with the autotagger.
 Defaults to ``yes``.
 
-color
-~~~~~
-
-Either ``yes`` or ``no``; whether to use color in console output (currently
-only in the ``import`` command). Turn this off if your terminal doesn't
-support ANSI colors.
 
 .. _list_format_item:
+.. _format_item:
 
-list_format_item
-~~~~~~~~~~~~~~~~
+format_item
+~~~~~~~~~~~
 
 Format to use when listing *individual items* with the :ref:`list-cmd`
 command and other commands that need to print out items. Defaults to
 ``$artist - $album - $title``. The ``-f`` command-line option overrides
 this setting.
 
-.. _list_format_album:
+It used to be named `list_format_item`.
 
-list_format_album
-~~~~~~~~~~~~~~~~~
+.. _list_format_album:
+.. _format_album:
+
+format_album
+~~~~~~~~~~~~
 
 Format to use when listing *albums* with :ref:`list-cmd` and other
 commands. Defaults to ``$albumartist - $album``. The ``-f`` command-line
 option overrides this setting.
+
+It used to be named `list_format_album`.
 
 .. _sort_item:
 
@@ -201,8 +229,17 @@ Default sort order to use when fetching items from the database. Defaults to
 sort_album
 ~~~~~~~~~~
 
-Default sort order to use when fetching items from the database. Defaults to
+Default sort order to use when fetching albums from the database. Defaults to
 ``albumartist+ album+``. Explicit sort orders override this default.
+
+.. _sort_case_insensitive:
+
+sort_case_insensitive
+~~~~~~~~~~~~~~~~~~~~~
+Either ``yes`` or ``no``, indicating whether the case should be ignored when
+sorting lexicographic fields. When set to ``no``, lower-case values will be
+placed after upper-case values (e.g., *Bar Qux foo*), while ``yes`` would
+result in the more expected *Bar foo Qux*. Default: ``yes``.
 
 .. _original_date:
 
@@ -224,7 +261,7 @@ A boolean controlling the track numbering style on multi-disc releases. By
 default (``per_disc_numbering: no``), tracks are numbered per-release, so the
 first track on the second disc has track number N+1 where N is the number of
 tracks on the first disc. If this ``per_disc_numbering`` is enabled, then the
-first track on each disc always has track number 1.
+first (non-pregap) track on each disc always has track number 1.
 
 If you enable ``per_disc_numbering``, you will likely want to change your
 :ref:`path-format-config` also to include ``$disc`` before ``$track`` to make
@@ -234,13 +271,19 @@ use a path format like this::
     paths:
         default: $albumartist/$album%aunique{}/$disc-$track $title
 
+When this option is off (the default), even "pregap" hidden tracks are
+numbered from one, not zero, so other track numbers may appear to be bumped up
+by one. When it is on, the pregap track for each disc can be numbered zero.
+
+
 .. _terminal_encoding:
 
 terminal_encoding
 ~~~~~~~~~~~~~~~~~
 
 The text encoding, as `known to Python`_, to use for messages printed to the
-standard output. By default, this is determined automatically from the locale
+standard output. It's also used to read messages from the standard input.
+By default, this is determined automatically from the locale
 environment variables.
 
 .. _known to python: http://docs.python.org/2/library/codecs.html#standard-encodings
@@ -254,6 +297,9 @@ When beets imports all the files in a directory, it tries to remove the
 directory if it's empty. A directory is considered empty if it only contains
 files whose names match the glob patterns in `clutter`, which should be a list
 of strings. The default list consists of "Thumbs.DB" and ".DS_Store".
+
+The importer only removes recursively searched subdirectories---the top-level
+directory you specify on the command line is never deleted.
 
 .. _max_filename_length:
 
@@ -273,6 +319,59 @@ By default, beets writes MP3 tags using the ID3v2.4 standard, the latest
 version of ID3. Enable this option to instead use the older ID3v2.3 standard,
 which is preferred by certain older software such as Windows Media Player.
 
+.. _va_name:
+
+va_name
+~~~~~~~
+
+Sets the albumartist for various-artist compilations. Defaults to ``'Various
+Artists'`` (the MusicBrainz standard). Affects other sources, such as
+:doc:`/plugins/discogs`, too.
+
+
+UI Options
+----------
+
+The options that allow for customization of the visual appearance
+of the console interface.
+
+These options are available in this section:
+
+color
+~~~~~
+
+Either ``yes`` or ``no``; whether to use color in console output (currently
+only in the ``import`` command). Turn this off if your terminal doesn't
+support ANSI colors.
+
+.. note::
+
+    The `color` option was previously a top-level configuration. This is
+    still respected, but a deprecation message will be shown until your
+    top-level `color` configuration has been nested under `ui`.
+
+colors
+~~~~~~
+
+The colors that are used throughout the user interface. These are only used if
+the ``color`` option is set to ``yes``. For example, you might have a section
+in your configuration file that looks like this::
+
+    ui:
+        color: yes
+        colors:
+            text_success: green
+            text_warning: yellow
+            text_error: red
+            text_highlight: red
+            text_highlight_minor: lightgray
+            action_default: turquoise
+            action: blue
+
+Available colors: black, darkred, darkgreen, brown (darkyellow), darkblue,
+purple (darkmagenta), teal (darkcyan), lightgray, darkgray, red, green,
+yellow, blue, fuchsia (magenta), turquoise (cyan), white
+
 
 Importer Options
 ----------------
@@ -288,12 +387,16 @@ file that looks like this::
 
 These options are available in this section:
 
+.. _config-import-write:
+
 write
 ~~~~~
 
 Either ``yes`` or ``no``, controlling whether metadata (e.g., ID3) tags are
 written to files when using ``beet import``. Defaults to ``yes``. The ``-w``
 and ``-W`` command-line options override this setting.
+
+.. _config-import-copy:
 
 copy
 ~~~~
@@ -304,6 +407,8 @@ overridden with the ``-c`` and ``-C`` command-line options.
 
 The option is ignored if ``move`` is enabled (i.e., beets can move or
 copy files but it doesn't make sense to do both).
+
+.. _config-import-move:
 
 move
 ~~~~
@@ -321,6 +426,34 @@ case beets doesn't do what you expect with your files.
 This option *overrides* ``copy``, so enabling it will always move
 (and not copy) files. The ``-c`` switch to the ``beet import`` command,
 however, still takes precedence.
+
+.. _link:
+
+link
+~~~~
+
+Either ``yes`` or ``no``, indicating whether to use symbolic links instead of
+moving or copying files. (It conflicts with the ``move``, ``copy`` and
+``hardlink`` options.) Defaults to ``no``.
+
+This option only works on platforms that support symbolic links: i.e., Unixes.
+It will fail on Windows.
+
+It's likely that you'll also want to set ``write`` to ``no`` if you use this
+option to preserve the metadata on the linked files.
+
+.. _hardlink:
+
+hardlink
+~~~~~~~~
+
+Either ``yes`` or ``no``, indicating whether to use hard links instead of
+moving or copying or symlinking files. (It conflicts with the ``move``,
+``copy``, and ``link`` options.) Defaults to ``no``.
+
+As with symbolic links (see :ref:`link`, above), this will not work on Windows
+and you will want to set ``write`` to ``no``.  Otherwise, metadata on the
+original file will be modified.
 
 resume
 ~~~~~~
@@ -418,12 +551,6 @@ tracks from many albums mixed together.
 The ``--group-albums`` or ``-g`` option to the :ref:`import-cmd` command is
 equivalent, and the *G* interactive option invokes the same workflow.
 
-.. note::
-    
-    The :ref:`import log <import_log>` currently contains less information
-    in album-grouping mode. (Specifically, no directory names recorded because
-    directories are not used for grouping in this mode.)
-
 Default: ``no``.
 
 .. _autotag:
@@ -437,6 +564,17 @@ disabling autotagging by setting this option to ``no``. (You can re-enable it
 with the ``-a`` flag to the :ref:`import-cmd` command.)
 
 Default: ``yes``.
+
+.. _duplicate_action:
+
+duplicate_action
+~~~~~~~~~~~~~~~~
+
+Either ``skip``, ``keep``, ``remove``, or ``ask``. Controls how duplicates
+are treated in import task. "skip" means that new item(album or track) will be
+skipped; "keep" means keep both old and new items; "remove" means remove old
+item; "ask" means the user should be prompted for the action each time.
+The default is ``ask``.
 
 
 .. _musicbrainz-config:
@@ -462,6 +600,16 @@ to one request per second.
 .. _limited: http://musicbrainz.org/doc/XML_Web_Service/Rate_Limiting
 .. _MusicBrainz: http://musicbrainz.org/
 
+.. _searchlimit:
+
+searchlimit
+~~~~~~~~~~~
+
+The number of matches returned when sending search queries to the
+MusicBrainz server.
+
+Default: ``5``.
+
 .. _match-config:
 
 Autotagger Matching Options
@@ -485,7 +633,7 @@ automatically accept any matches above 90% similarity, use::
 The default strong recommendation threshold is 0.04.
 
 The ``medium_rec_thresh`` and ``rec_gap_thresh`` options work similarly. When a
-match is above the *medium* recommendation threshold or the distance between it
+match is below the *medium* recommendation threshold or the distance between it
 and the next-best match is above the *gap* threshold, the importer will suggest
 that match but not automatically confirm it. Otherwise, you'll see a list of
 options to choose from.
@@ -608,7 +756,7 @@ defaults look like this::
         singleton: Non-Album/$artist/$title
         comp: Compilations/$album%aunique{}/$track $title
 
-Note the use of ``$albumartist`` instead of ``$artist``; this ensure that albums
+Note the use of ``$albumartist`` instead of ``$artist``; this ensures that albums
 will be well-organized. For more about these format strings, see
 :doc:`pathformat`. The ``aunique{}`` function ensures that identically-named
 albums are placed in different directories; see :ref:`aunique` for details.
@@ -681,21 +829,16 @@ Example
 
 Here's an example file::
 
-    library: /var/music.blb
     directory: /var/mp3
     import:
         copy: yes
         write: yes
-        resume: ask
-        quiet_fallback: skip
-        timid: no
         log: beetslog.txt
-    ignore: .AppleDouble ._* *~ .DS_Store
     art_filename: albumart
     plugins: bpd
     pluginpath: ~/beets/myplugins
-    threaded: yes
-    color: yes
+    ui:
+        color: yes
 
     paths:
         default: $genre/$albumartist/$album/$track $title
